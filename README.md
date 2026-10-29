@@ -50,6 +50,7 @@ The story strip under the banner has a Next button for each step. "Reset demo" r
 | Budgets per initiative | Simulated | Derived from synthetic spend |
 | Leader scorecard, off-plan runs, guardrails, decision costs | **Real logic** on simulated data | `src/core/selectors.ts`, `src/core/decision.ts` |
 | CFO forecast range and reliability | **Real logic** on simulated data | `src/core/forecast.ts`: bootstrap of recent weekly spend |
+| AI tokens beside actual costs (Engineer and Leader views) | Simulated conversion | One blended rate, $6 per million tokens (`src/core/tokens.ts`). The CFO view stays in dollars |
 | PRs, merges, ticket links | Simulated | PR numbers are synthetic; nothing is merged |
 | Persistence | None | In-memory only; reload resets the demo |
 

@@ -12,9 +12,10 @@ nav { display: flex; gap: 6px; flex: 1; }
 .card h3 { margin: 0 0 4px; }
 h4 { margin: 14px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .muted { color: var(--muted); }
-.row { display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0; }
+.row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 10px 0; }
+.row label { display: inline-flex; align-items: center; }
 select { margin-left: 6px; padding: 4px; font: inherit; }
-.quote { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
+.quote { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
 .big { font-size: 26px; font-weight: 700; }
 .pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
 .pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); }

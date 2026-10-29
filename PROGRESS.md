@@ -52,6 +52,9 @@
 - "Tasks finished within budget" = share of finished sampled tasks at or under their approved quote.
 - QA.md section F evidence predates the redesign and needs a refresh.
 
+## Tokens (after CFO redesign)
+- Engineer and Leader views show AI tokens next to every actual cost (terminal events, status line, receipt, similar tasks, detector, totals, budget table, off-plan, tagging queue). Conversion: one blended rate, $6 per million tokens (`src/core/tokens.ts`, synthetic assumption). Quotes, budgets and envelopes stay in dollars. The CFO view has no token figures.
+
 ## Open questions
 - (resolved) E1 recalibration: approved and done on July/August only; disclosed in EVAL.md.
 

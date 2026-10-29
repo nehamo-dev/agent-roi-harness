@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { detect, totalSaved } from '../core/detector';
 import { logCost } from '../core/eventlog';
 import { SAMPLE_LOGS } from '../data/logs';
-import { usd } from './fmt';
+import { tok, usd } from './fmt';
 
 const CLEAN = 'clean-2';
 const WASTEFUL = 'mixed-1';
@@ -29,16 +29,16 @@ export function DetectorPanel() {
             <tr key={i} className={flagged(i) ? 'flagged' : ''}>
               <td>{i}</td><td>{e.t}</td>
               <td>{e.kind === 'read' || e.kind === 'edit' ? `${e.kind} ${e.file}` : `${e.kind} ${e.cmd} (exit ${e.exitCode})`}</td>
-              <td className="num">{usd(e.costDelta)}</td>
+              <td className="num">{usd(e.costDelta)} <span className="muted">· {tok(e.costDelta)}</span></td>
             </tr>
           ))}</tbody>
         </table>
         <div>
           <h4>Detector output</h4>
           {flags.length === 0 ? <p className="pill ok">No waste flagged</p> : (
-            <ul>{flags.map((f) => <li key={`${f.cls}-${f.start}`}><b>{f.cls}</b> (events {f.start}–{f.end}): {f.message} Est. saved {usd(f.dollarsSaved)}.</li>)}</ul>
+            <ul>{flags.map((f) => <li key={`${f.cls}-${f.start}`}><b>{f.cls}</b> (events {f.start}–{f.end}): {f.message} Est. saved {usd(f.dollarsSaved)} ({tok(f.dollarsSaved)}).</li>)}</ul>
           )}
-          <p className="muted">Log cost {usd(logCost(log))} · estimated saved {usd(totalSaved(flags))}</p>
+          <p className="muted">Log cost {usd(logCost(log))} ({tok(logCost(log))}) · estimated saved {usd(totalSaved(flags))} ({tok(totalSaved(flags))})</p>
         </div>
       </div>
     </section>

@@ -56,7 +56,7 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 ## F. CFO view
 | # | Check | Result | Evidence |
 |---|---|---|---|
-| F1 | Everything is in dollars and outcomes; the word "token" appears nowhere in the UI (search the source strings) | PASS | `grep -rni token src index.html` → no matches (hero scenario reworded from "card tokens" to "vaulted card references"). |
+| F1 | Everything is in dollars and outcomes; the word "token" appears nowhere in the UI (search the source strings) | PASS | Re-checked after tokens were added to the Engineer and Leader views (by request): `grep -n token src/views/CfoView.tsx` → none, and the rendered CFO page text contains "token" 0 times. Token figures live only in Engineer and Leader. |
 | F2 | Forecast range for the period is shown, with estimate reliability | PASS | Q4 forecast range $1,319–$2,237 (10th–90th pct) tile, plus "Estimate reliability 66.7%" and a by-month reliability chart. |
 | F3 | Cost per capability delivered shows variances explained | PASS | Table has Approved, Actual, Variance and a "Why" column (e.g. "T-102 ran $248 over its ceiling (runaway run)"). |
 | F4 | Labeled "cost per outcome, not value" | PASS | Callout: "Cost per outcome, not value." with explanation. |

@@ -4,7 +4,8 @@ import { heroTask } from '../core/reducer';
 import { budgetVsActual, byTeam, guardrails, OFF_PLAN_MIN_OVER, offPlanRuns, scorecard, totalSpend } from '../core/selectors';
 import { PAUSED_SCENARIO } from '../data/pausedScenario';
 import { useStore } from '../state/store';
-import { money, usd } from './fmt';
+import { money, tok, usd } from './fmt';
+import { USD_PER_MILLION_TOKENS } from '../core/tokens';
 
 const pct = (x: number) => (Number.isFinite(x) ? `${(x * 100).toFixed(1)}%` : 'n/a');
 
@@ -24,7 +25,7 @@ export function LeaderView() {
     <>
       <section className="card">
         <h3>Engineering leader: AI coding budget, Q3 2026 <span className="pill warn">synthetic data</span></h3>
-        <p className="muted">Total spend {money(totalSpend(state))} this quarter across the org (modeled). Pilot scorecard from {sc.runs} sampled runs, computed live from the shared store:</p>
+        <p className="muted">Total spend {money(totalSpend(state))} ({tok(totalSpend(state))} at ${USD_PER_MILLION_TOKENS} per million) this quarter across the org (modeled). Pilot scorecard from {sc.runs} sampled runs, computed live from the shared store:</p>
         <div className="tiles">
           <div className="tile"><div className="tile-v">{pct(sc.controlByTask)}</div><div className="tile-l">Control by task: runs started under an approved quote</div></div>
           <div className="tile"><div className="tile-v">{pct(sc.controlByDollars)}</div><div className="tile-l">Control by dollars: spend that ran inside an approved quote</div></div>
@@ -52,9 +53,9 @@ export function LeaderView() {
           <table>
             <thead><tr><th>Team / initiative</th><th className="num">Budget</th><th className="num">Actual</th><th className="num">Variance</th></tr></thead>
             <tbody>{teams.map((tm) => [
-              <tr key={tm.team} className="team-row"><td>{tm.team}</td><td className="num">{money(tm.budget)}</td><td className="num">{money(tm.actual)}</td><td className={`num ${tm.actual > tm.budget ? 'bad' : 'ok'}`}>{money(tm.actual - tm.budget)}</td></tr>,
+              <tr key={tm.team} className="team-row"><td>{tm.team}</td><td className="num">{money(tm.budget)}</td><td className="num">{money(tm.actual)} <span className="muted">· {tok(tm.actual)}</span></td><td className={`num ${tm.actual > tm.budget ? 'bad' : 'ok'}`}>{money(tm.actual - tm.budget)}</td></tr>,
               ...inits.filter((i) => i.team === tm.team).map((i) => (
-                <tr key={i.initiative}><td className="indent">{i.initiative}</td><td className="num">{money(i.budget)}</td><td className="num">{money(i.actual)}</td><td className={`num ${i.variance > 0 ? 'bad' : 'ok'}`}>{money(i.variance)}</td></tr>
+                <tr key={i.initiative}><td className="indent">{i.initiative}</td><td className="num">{money(i.budget)}</td><td className="num">{money(i.actual)} <span className="muted">· {tok(i.actual)}</span></td><td className={`num ${i.variance > 0 ? 'bad' : 'ok'}`}>{money(i.variance)}</td></tr>
               )),
             ])}</tbody>
           </table>
@@ -64,7 +65,7 @@ export function LeaderView() {
       <section className="card highlight">
         <h3>Latest run from the engineer view</h3>
         {state.heroReceipt ? (
-          <p>{hero.id} · {hero.developer} · <b>{hero.capability}</b> · {usd(hero.actualCost)} vs quote {usd(hero.quote.low)} – {usd(hero.quote.high)} · {state.heroReceipt.choice === 'platform' ? 'deeper platform fix' : 'surface fix'} · PR #{hero.prNumber} (simulated) · {offPlan.some((o) => o.task.id === hero.id) ? 'off plan, surfaced below.' : 'on plan, so not surfaced below.'}</p>
+          <p>{hero.id} · {hero.developer} · <b>{hero.capability}</b> · {usd(hero.actualCost)} ({tok(hero.actualCost)}) vs quote {usd(hero.quote.low)} – {usd(hero.quote.high)} · {state.heroReceipt.choice === 'platform' ? 'deeper platform fix' : 'surface fix'} · PR #{hero.prNumber} (simulated) · {offPlan.some((o) => o.task.id === hero.id) ? 'off plan, surfaced below.' : 'on plan, so not surfaced below.'}</p>
         ) : <p className="muted">{hero.id} ({hero.capability}) is still running in the engineer view. Play it to the receipt and it appears here.</p>}
       </section>
 
@@ -72,10 +73,10 @@ export function LeaderView() {
         <h3>Needs a decision: {paused.id}, {paused.capability}</h3>
         <p className="muted">{paused.team} · {paused.developer} · {paused.type} {paused.size} in {paused.repoArea} · quote {usd(paused.quote.low)} – {usd(paused.quote.high)}</p>
         {state.pausedDecision ? (
-          <p><span className="pill ok">resolved</span> Chose <b>{state.pausedDecision.label}</b>. Final cost {usd(paused.actualCost)}{state.pausedDecision.delivered ? '' : '; capability not delivered'}. Every view now reflects this.</p>
+          <p><span className="pill ok">resolved</span> Chose <b>{state.pausedDecision.label}</b>. Final cost {usd(paused.actualCost)} ({tok(paused.actualCost)}){state.pausedDecision.delivered ? '' : '; capability not delivered'}. Every view now reflects this.</p>
         ) : (
           <>
-            <p><b>Why it stopped:</b> {PAUSED_SCENARIO.why} Spent {usd(paused.actualCost)} against a ceiling of {usd(paused.quote.high)}.</p>
+            <p><b>Why it stopped:</b> {PAUSED_SCENARIO.why} Spent {usd(paused.actualCost)} ({tok(paused.actualCost)}) against a ceiling of {usd(paused.quote.high)}.</p>
             <p><b>What changed:</b> {PAUSED_SCENARIO.changed} {PAUSED_SCENARIO.doneUnits} of {PAUSED_SCENARIO.discoveredUnits} {PAUSED_SCENARIO.unitLabel} done.</p>
             <div className="options">{options.map((o) => (
               <button key={o.key} className="option" onClick={() => dispatch({ kind: 'resolvePaused', option: o })}>
@@ -93,7 +94,7 @@ export function LeaderView() {
           <thead><tr><th>Task</th><th>Team</th><th>Capability</th><th className="num">Quote</th><th className="num">Actual</th><th>State</th><th>What was done / needed</th></tr></thead>
           <tbody>{offPlan.map((o) => (
             <tr key={o.task.id}><td>{o.task.id}</td><td>{o.task.team}</td><td>{o.task.capability}</td>
-              <td className="num">{usd(o.task.quote.low)} – {usd(o.task.quote.high)}</td><td className="num">{usd(o.task.actualCost)}</td>
+              <td className="num">{usd(o.task.quote.low)} – {usd(o.task.quote.high)}</td><td className="num">{usd(o.task.actualCost)} <span className="muted">· {tok(o.task.actualCost)}</span></td>
               <td><span className={`pill ${o.state === 'resolved' ? 'ok' : 'warn'}`}>{o.state}</span></td><td>{o.note}</td></tr>
           ))}</tbody>
         </table>
@@ -114,7 +115,7 @@ export function LeaderView() {
             <table>
               <thead><tr><th>Task</th><th>Date</th><th>Team</th><th>Capability</th><th>Type</th><th className="num">Actual</th><th></th></tr></thead>
               <tbody>{queue.map((t) => (
-                <tr key={t.id}><td>{t.id}</td><td>{t.date}</td><td>{t.team}</td><td>{t.capability}</td><td>{t.type} {t.size}</td><td className="num">{usd(t.actualCost)}</td>
+                <tr key={t.id}><td>{t.id}</td><td>{t.date}</td><td>{t.team}</td><td>{t.capability}</td><td>{t.type} {t.size}</td><td className="num">{usd(t.actualCost)} <span className="muted">· {tok(t.actualCost)}</span></td>
                   <td className="actions"><button onClick={() => dispatch({ kind: 'tag', taskId: t.id, justified: 'yes' })}>Yes</button><button onClick={() => dispatch({ kind: 'tag', taskId: t.id, justified: 'no' })}>No</button></td></tr>
               ))}</tbody>
             </table>

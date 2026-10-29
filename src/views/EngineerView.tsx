@@ -5,7 +5,7 @@ import { buildSteps, computeReceipt, optionCost, type Choice } from '../core/ses
 import { HERO_SCENARIO } from '../data/heroScenario';
 import { initial, useStore } from '../state/store';
 import { DetectorPanel } from './DetectorPanel';
-import { usd } from './fmt';
+import { tok, usd } from './fmt';
 import { TryItPanel } from './TryItPanel';
 
 const TICK_MS = 450;
@@ -69,7 +69,7 @@ export function EngineerView() {
           {visible.map((s, i) => (
             <div key={i} className={`t-${s.kind}${s.failed ? ' t-fail' : ''}`}>
               {s.kind === 'user' && <span className="t-dim">&gt; </span>}
-              {s.kind === 'event' && <span className="t-dim">{usd(s.cost).padStart(6)}  </span>}
+              {s.kind === 'event' && <span className="t-dim">{usd(s.cost).padStart(6)} {tok(s.cost).replace(' tokens', '').padStart(4)}  </span>}
               {s.text}
             </div>
           ))}
@@ -85,7 +85,7 @@ export function EngineerView() {
           )}
         </div>
         <div className={`statusline${spend > envelope ? ' over' : ''}`}>
-          <span>spend {usd(spend)} / envelope {usd(envelope)}</span>
+          <span>spend {usd(spend)} ({tok(spend)}) / envelope {usd(envelope)}</span>
           <span>{currentItem ? `item: ${currentItem}` : 'planning'}</span>
           <span>{done ? 'complete' : blocked ? 'waiting for your choice' : playing ? 'running' : 'paused'}</span>
         </div>
@@ -94,6 +94,7 @@ export function EngineerView() {
             <h4>Receipt</h4>
             <div className="quote">
               <span className="big">{usd(receipt.actual)}</span>
+              <span className="muted">{tok(receipt.actual)}</span>
               <span className="muted">vs quote {usd(receipt.quote.low)} – {usd(receipt.quote.high)}</span>
               <span className={receipt.withinQuote ? 'pill ok' : 'pill bad'}>{receipt.withinQuote ? 'within quote' : 'outside quote'}</span>
             </div>
