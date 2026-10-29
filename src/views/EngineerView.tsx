@@ -6,6 +6,7 @@ import { HERO_SCENARIO } from '../data/heroScenario';
 import { initial, useStore } from '../state/store';
 import { DetectorPanel } from './DetectorPanel';
 import { tok, usd } from './fmt';
+import { TaskLink } from './TaskDetail';
 import { TryItPanel } from './TryItPanel';
 
 const TICK_MS = 450;
@@ -99,7 +100,7 @@ export function EngineerView() {
               <span className={receipt.withinQuote ? 'pill ok' : 'pill bad'}>{receipt.withinQuote ? 'within quote' : 'outside quote'}</span>
             </div>
             <ul>{receipt.variance.map((v) => <li key={v}>{v}</li>)}</ul>
-            <p><b>Capability delivered:</b> {receipt.capability} · <b>PR #{receipt.prNumber}</b> merged (simulated) · task {hero.id} written to the shared store.</p>
+            <p><b>Capability delivered:</b> {receipt.capability} · <b>PR #{receipt.prNumber}</b> merged (simulated) · task <TaskLink id={hero.id} /> written to the shared store.</p>
           </div>
         )}
       </section>

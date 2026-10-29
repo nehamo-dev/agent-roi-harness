@@ -4,6 +4,7 @@ import { completedTasks } from '../core/reducer';
 import { REPO_AREAS, SIZES, TASK_TYPES, type RepoArea, type Size, type TaskType } from '../core/types';
 import { useStore } from '../state/store';
 import { tok, usd } from './fmt';
+import { TaskLink } from './TaskDetail';
 
 export function TryItPanel() {
   const { state } = useStore();
@@ -35,7 +36,7 @@ export function TryItPanel() {
         <table>
           <thead><tr><th>Task</th><th>Date</th><th>Type</th><th>Size</th><th>Area</th><th>Team</th><th className="num">Actual</th></tr></thead>
           <tbody>{e.similar.map((t) => (
-            <tr key={t.id}><td>{t.id}</td><td>{t.date}</td><td>{t.type}</td><td>{t.size}</td><td>{t.repoArea}</td><td>{t.team}</td><td className="num">{usd(t.actualCost)} <span className="muted">· {tok(t.actualCost)}</span></td></tr>
+            <tr key={t.id}><td><TaskLink id={t.id} /></td><td>{t.date}</td><td>{t.type}</td><td>{t.size}</td><td>{t.repoArea}</td><td>{t.team}</td><td className="num">{usd(t.actualCost)} <span className="muted">· {tok(t.actualCost)}</span></td></tr>
           ))}</tbody>
         </table>
       )}

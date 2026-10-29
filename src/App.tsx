@@ -3,6 +3,7 @@ import { useStore } from './state/store';
 import { EngineerView } from './views/EngineerView';
 import { CfoView } from './views/CfoView';
 import { LeaderView } from './views/LeaderView';
+import { TaskDetailHost } from './views/TaskDetail';
 
 const TABS = ['Engineer', 'Leader', 'CFO'] as const;
 type Tab = (typeof TABS)[number];
@@ -33,11 +34,13 @@ export function App() {
         {step < 2 ? <button onClick={() => setTab(TABS[step + 1])}>Next: {TABS[step + 1]} →</button> : <button onClick={restart}>Restart demo</button>}
       </div>
       {/* Views stay mounted so the engineer run survives tab switches. */}
+      <TaskDetailHost>
       <main key={runKey}>
         <div hidden={tab !== 'Engineer'}><EngineerView /></div>
         <div hidden={tab !== 'Leader'}><LeaderView /></div>
         <div hidden={tab !== 'CFO'}><CfoView onOpenEngineer={() => setTab('Engineer')} /></div>
       </main>
+      </TaskDetailHost>
     </div>
   );
 }

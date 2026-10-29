@@ -6,6 +6,7 @@ import { PAUSED_SCENARIO } from '../data/pausedScenario';
 import { useStore } from '../state/store';
 import { money, tok, usd } from './fmt';
 import { USD_PER_MILLION_TOKENS } from '../core/tokens';
+import { TaskLink } from './TaskDetail';
 
 const pct = (x: number) => (Number.isFinite(x) ? `${(x * 100).toFixed(1)}%` : 'n/a');
 
@@ -65,12 +66,12 @@ export function LeaderView() {
       <section className="card highlight">
         <h3>Latest run from the engineer view</h3>
         {state.heroReceipt ? (
-          <p>{hero.id} · {hero.developer} · <b>{hero.capability}</b> · {usd(hero.actualCost)} ({tok(hero.actualCost)}) vs quote {usd(hero.quote.low)} – {usd(hero.quote.high)} · {state.heroReceipt.choice === 'platform' ? 'deeper platform fix' : 'surface fix'} · PR #{hero.prNumber} (simulated) · {offPlan.some((o) => o.task.id === hero.id) ? 'off plan, surfaced below.' : 'on plan, so not surfaced below.'}</p>
-        ) : <p className="muted">{hero.id} ({hero.capability}) is still running in the engineer view. Play it to the receipt and it appears here.</p>}
+          <p><TaskLink id={hero.id} /> · {hero.developer} · <b>{hero.capability}</b> · {usd(hero.actualCost)} ({tok(hero.actualCost)}) vs quote {usd(hero.quote.low)} – {usd(hero.quote.high)} · {state.heroReceipt.choice === 'platform' ? 'deeper platform fix' : 'surface fix'} · PR #{hero.prNumber} (simulated) · {offPlan.some((o) => o.task.id === hero.id) ? 'off plan, surfaced below.' : 'on plan, so not surfaced below.'}</p>
+        ) : <p className="muted"><TaskLink id={hero.id} /> ({hero.capability}) is still running in the engineer view. Play it to the receipt and it appears here.</p>}
       </section>
 
       <section className="card">
-        <h3>Needs a decision: {paused.id}, {paused.capability}</h3>
+        <h3>Needs a decision: <TaskLink id={paused.id} />, {paused.capability}</h3>
         <p className="muted">{paused.team} · {paused.developer} · {paused.type} {paused.size} in {paused.repoArea} · quote {usd(paused.quote.low)} – {usd(paused.quote.high)}</p>
         {state.pausedDecision ? (
           <p><span className="pill ok">resolved</span> Chose <b>{state.pausedDecision.label}</b>. Final cost {usd(paused.actualCost)} ({tok(paused.actualCost)}){state.pausedDecision.delivered ? '' : '; capability not delivered'}. Every view now reflects this.</p>
@@ -93,7 +94,7 @@ export function LeaderView() {
         <table>
           <thead><tr><th>Task</th><th>Team</th><th>Capability</th><th className="num">Quote</th><th className="num">Actual</th><th>State</th><th>What was done / needed</th></tr></thead>
           <tbody>{offPlan.map((o) => (
-            <tr key={o.task.id}><td>{o.task.id}</td><td>{o.task.team}</td><td>{o.task.capability}</td>
+            <tr key={o.task.id}><td><TaskLink id={o.task.id} /></td><td>{o.task.team}</td><td>{o.task.capability}</td>
               <td className="num">{usd(o.task.quote.low)} – {usd(o.task.quote.high)}</td><td className="num">{usd(o.task.actualCost)} <span className="muted">· {tok(o.task.actualCost)}</span></td>
               <td><span className={`pill ${o.state === 'resolved' ? 'ok' : 'warn'}`}>{o.state}</span></td><td>{o.note}</td></tr>
           ))}</tbody>
@@ -115,7 +116,7 @@ export function LeaderView() {
             <table>
               <thead><tr><th>Task</th><th>Date</th><th>Team</th><th>Capability</th><th>Type</th><th className="num">Actual</th><th></th></tr></thead>
               <tbody>{queue.map((t) => (
-                <tr key={t.id}><td>{t.id}</td><td>{t.date}</td><td>{t.team}</td><td>{t.capability}</td><td>{t.type} {t.size}</td><td className="num">{usd(t.actualCost)} <span className="muted">· {tok(t.actualCost)}</span></td>
+                <tr key={t.id}><td><TaskLink id={t.id} /></td><td>{t.date}</td><td>{t.team}</td><td>{t.capability}</td><td>{t.type} {t.size}</td><td className="num">{usd(t.actualCost)} <span className="muted">· {tok(t.actualCost)}</span></td>
                   <td className="actions"><button onClick={() => dispatch({ kind: 'tag', taskId: t.id, justified: 'yes' })}>Yes</button><button onClick={() => dispatch({ kind: 'tag', taskId: t.id, justified: 'no' })}>No</button></td></tr>
               ))}</tbody>
             </table>

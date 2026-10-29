@@ -55,6 +55,10 @@
 ## Tokens (after CFO redesign)
 - Engineer and Leader views show AI tokens next to every actual cost (terminal events, status line, receipt, similar tasks, detector, totals, budget table, off-plan, tagging queue). Conversion: one blended rate, $6 per million tokens (`src/core/tokens.ts`, synthetic assumption). Quotes, budgets and envelopes stay in dollars. The CFO view has no token figures.
 
+## Agent interventions panel (replaces raw detector output)
+- `src/core/interventions.ts` turns detector flags into "Handled automatically" items (what happened, what the harness did, $ and tokens saved) and, when a retry loop is paused, one decision for the engineer: diagnose and fix now (est. = average edit cost + one run of that command in the log) vs set it aside (no added cost, follow-up logged).
+- Task IDs in Engineer and Leader views open a task detail panel.
+
 ## Open questions
 - (resolved) E1 recalibration: approved and done on July/August only; disclosed in EVAL.md.
 
