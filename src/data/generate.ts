@@ -125,7 +125,7 @@ export function generate(seed = SEED, count = 148): GeneratedData {
   // The paused run for the leader decision screen.
   raw.push({
     team: 'Platform', developer: 'Max W.', initiative: 'Service mesh', capability: 'mTLS between services',
-    type: 'migration', size: 'L', repoArea: 'platform', quote: { low: 0, high: 0 }, actualCost: 61.4,
+    type: 'migration', size: 'L', repoArea: 'platform', quote: { low: 0, high: 0 }, actualCost: 160,
     eventLogId: null, status: 'paused', justified: 'unset', date: '2026-09-29', role: 'paused-decision',
   });
   // The hero task: runs live in the engineer view; cost is written when the run completes.

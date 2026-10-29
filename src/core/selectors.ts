@@ -54,7 +54,7 @@ export function offPlanRuns(s: DemoState): OffPlanRun[] {
       const note = t.delivered === false ? 'Stopped and reverted; capability not delivered.'
         : t.justified === 'yes' ? `Ran ${ratio.toFixed(1)}x the quote ceiling; reviewed and tagged justified.`
           : t.justified === 'no' ? `Ran ${ratio.toFixed(1)}x the quote ceiling; tagged not justified.`
-            : `Ran ${ratio.toFixed(1)}x the quote ceiling; not yet reviewed (in tagging queue).`;
+            : `Ran ${ratio.toFixed(1)}x the quote ceiling; not yet reviewed.`;
       out.push({ task: t, overBy, state: t.justified === 'unset' && t.delivered !== false ? 'needs review' : 'resolved', note });
     }
   }

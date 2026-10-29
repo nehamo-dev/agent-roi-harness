@@ -81,7 +81,7 @@ Target: at least 70% of weeks inside the range (report-only if it misses). A ver
 | E2 | Precision | 80% | 100% (10/10) | PASS | Retry loop 5/5, repeated read 5/5. Caveat: labels and rules written by the same author from the same definitions. |
 | E2 | Recall | 70% | 100% (10/10) | PASS | Same caveat. 12 logs. |
 | E2 | Clean and tricky logs flagged | zero | 0 flags on 5 logs | PASS | Savings never exceed log cost (0 violations). |
-| E3 | Consistency checks | all pass | 7/7 | PASS | Totals match before/after hero run; hero $10.48 matches receipt/leader/CFO; paused decision moves both totals by +$12.28; tag moves scorecard; trade-off changes receipt and CFO row; no NaN/negative/empty. |
+| E3 | Consistency checks | all pass | 7/7 | PASS | Totals match before/after hero run; hero $10.48 matches receipt/leader/CFO; paused decision moves both totals by the chosen option's cost (+$80.00 for "finish planned 6"); tag moves scorecard; trade-off changes receipt and CFO row; no NaN/negative/empty. |
 | E4 | Scorecard computed, not hard-coded | yes | yes | PASS | `scorecard()` in src/core/selectors.ts; changes when tagging (E3 check and browser: 87.0% → 87.2%) and when the paused run resolves. Quote accuracy tile = E1 coverage recomputed from the store. |
 | E5 | Weeks inside forecast range | 70% | 4/6 weeks (67%), avg width 0.09x actual | MISS | Report-only. Re-run on org-scale weekly spend (one-off spend and the paused capability excluded, as in the CFO forecast). The range is now narrow; the misses are weeks just outside it. |
 

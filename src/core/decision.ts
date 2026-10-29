@@ -7,6 +7,7 @@ export interface PausedContext {
   plannedUnits: number;
   discoveredUnits: number;
   doneUnits: number;
+  runDoneUnits: number;
   unitLabel: string;
   cleanupCost: number;
 }
@@ -21,7 +22,8 @@ export interface DecisionOption {
 }
 
 export function decisionOptions(task: Task, ctx: PausedContext): DecisionOption[] {
-  const rate = task.actualCost / ctx.doneUnits;
+  // This run's own cost per service so far prices the remaining scope.
+  const rate = task.actualCost / ctx.runDoneUnits;
   const mk = (key: DecisionKey, label: string, detail: string, addedCost: number, delivered: boolean): DecisionOption => ({
     key, label, detail, addedCost, finalCost: task.actualCost + addedCost, delivered,
   });

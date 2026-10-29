@@ -20,7 +20,6 @@ export function LeaderView() {
   const hero = heroTask(state);
   const paused = state.tasks.find((t) => t.role === 'paused-decision')!;
   const options = decisionOptions({ ...paused, actualCost: state.pausedDecision ? paused.actualCost - state.pausedDecision.addedCost : paused.actualCost }, PAUSED_SCENARIO);
-  const queue = state.tasks.filter((t) => t.status === 'completed' && t.justified === 'unset').sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <>
@@ -77,11 +76,11 @@ export function LeaderView() {
           <p><span className="pill ok">resolved</span> Chose <b>{state.pausedDecision.label}</b>. Final cost {usd(paused.actualCost)} ({tok(paused.actualCost)}){state.pausedDecision.delivered ? '' : '; capability not delivered'}. Every view now reflects this.</p>
         ) : (
           <>
-            <p><b>Why it stopped:</b> {PAUSED_SCENARIO.why} Spent {usd(paused.actualCost)} ({tok(paused.actualCost)}) against a ceiling of {usd(paused.quote.high)}.</p>
-            <p><b>What changed:</b> {PAUSED_SCENARIO.changed} {PAUSED_SCENARIO.doneUnits} of {PAUSED_SCENARIO.discoveredUnits} {PAUSED_SCENARIO.unitLabel} done.</p>
+            <p><b>Why it stopped:</b> {PAUSED_SCENARIO.why} Spent {usd(paused.actualCost)} ({tok(paused.actualCost)}) against a ceiling of {usd(paused.quote.high)} ({tok(paused.quote.high)}).</p>
+            <p><b>What changed:</b> {PAUSED_SCENARIO.changed} {PAUSED_SCENARIO.doneUnits} of {PAUSED_SCENARIO.discoveredUnits} {PAUSED_SCENARIO.unitLabel} done; this run migrated {PAUSED_SCENARIO.runDoneUnits} at about {usd(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)} ({tok(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)}) each.</p>
             <div className="options">{options.map((o) => (
               <button key={o.key} className="option" onClick={() => dispatch({ kind: 'resolvePaused', option: o })}>
-                <b>{o.label}</b><span>+{usd(o.addedCost)} → total {usd(o.finalCost)}</span><span className="muted">{o.detail}</span>
+                <b>{o.label}</b><span className="opt-cost">+{usd(o.addedCost)} → total {usd(o.finalCost)}</span><span className="muted">+{tok(o.addedCost)} → total {tok(o.finalCost)}</span><span className="muted">{o.detail}</span>
               </button>
             ))}</div>
           </>
@@ -108,21 +107,6 @@ export function LeaderView() {
         ))}</div>
       </section>
 
-      <section className="card">
-        <h3>Justified tagging queue ({queue.length} untagged)</h3>
-        <p className="muted">Was this run worth its cost? Tags update the justified rate and tag coverage above.</p>
-        {queue.length === 0 ? <p className="pill ok">All completed runs are tagged.</p> : (
-          <div className="queue">
-            <table>
-              <thead><tr><th>Task</th><th>Date</th><th>Team</th><th>Capability</th><th>Type</th><th className="num">Actual</th><th></th></tr></thead>
-              <tbody>{queue.map((t) => (
-                <tr key={t.id}><td><TaskLink id={t.id} /></td><td>{t.date}</td><td>{t.team}</td><td>{t.capability}</td><td>{t.type} {t.size}</td><td className="num">{usd(t.actualCost)} <span className="muted">· {tok(t.actualCost)}</span></td>
-                  <td className="actions"><button onClick={() => dispatch({ kind: 'tag', taskId: t.id, justified: 'yes' })}>Yes</button><button onClick={() => dispatch({ kind: 'tag', taskId: t.id, justified: 'no' })}>No</button></td></tr>
-              ))}</tbody>
-            </table>
-          </div>
-        )}
-      </section>
     </>
   );
 }

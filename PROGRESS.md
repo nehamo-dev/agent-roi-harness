@@ -59,6 +59,10 @@
 - `src/core/interventions.ts` turns detector flags into "Handled automatically" items (what happened, what the harness did, $ and tokens saved) and, when a retry loop is paused, one decision for the engineer: diagnose and fix now (est. = average edit cost + one run of that command in the log) vs set it aside (no added cost, follow-up logged).
 - Task IDs in Engineer and Leader views open a task detail panel.
 
+## Leader changes
+- Paused run (T-149) now costs $160 so far (2 services migrated in this run at $80 each). Options are priced at that rate: approve all 14 (+$720 → $880), finish planned 6 (+$80 → $240), stop (+$1.50 → $161.50). Tokens shown beside every amount. CFO effect still uses the capability's progress (5 of 14 done), so CFO numbers are unchanged.
+- Justified tagging queue removed from the leader view. The justified/tag-coverage tile stays; the tag action remains in the reducer and E3.
+
 ## Open questions
 - (resolved) E1 recalibration: approved and done on July/August only; disclosed in EVAL.md.
 

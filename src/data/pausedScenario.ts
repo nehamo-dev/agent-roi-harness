@@ -4,7 +4,8 @@ export const PAUSED_SCENARIO = {
   changed: 'The plan assumed 6 services needed mTLS. Discovery found 14, and certificate rotation needs a shared sidecar change.',
   plannedUnits: 6,
   discoveredUnits: 14,
-  doneUnits: 5,
+  doneUnits: 5, // across the capability
+  runDoneUnits: 2, // migrated by this paused run; sets its cost per service
   unitLabel: 'services',
   cleanupCost: 1.5,
   // Owner's note for the CFO page, by state of the leader's decision.

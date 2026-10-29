@@ -11,7 +11,7 @@ type Tab = (typeof TABS)[number];
 // One story, three views. About a minute each.
 const STORY: Record<Tab, string> = {
   Engineer: 'Press Play. The agent quotes the task from similar past work, auto-approves, gets corrected by the waste detector, asks you to pick a trade-off, and ends with a receipt that lands in the shared store.',
-  Leader: 'The same run now shows up in the budget. Only off-plan runs are surfaced. Decide the paused run, tag a run or two, and watch the scorecard move.',
+  Leader: 'The same run now shows up in the budget. Only off-plan runs are surfaced. Decide the paused run and watch the totals and the CFO view move.',
   CFO: 'One screen in dollars: spent, likely next, and what went over budget and why.',
 };
 
