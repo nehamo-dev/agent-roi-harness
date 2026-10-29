@@ -5,6 +5,7 @@ import { forecast, type Week } from './forecast';
 import type { DemoState } from './reducer';
 import { capabilityRows, pausedScopeCost, totalSpend } from './selectors';
 import { sum } from './stats';
+import { ILLUSTRATIVE } from '../data/illustrative';
 
 export type DeptStatus = 'ok' | 'watch' | 'over';
 export const ACCURACY_WEEKS = 12;
@@ -55,7 +56,7 @@ export function q4Summary(s: DemoState, money: (n: number) => string) {
       return actual >= fk.low && actual <= fk.high;
     });
     const priorQuarter = d.engineering ? totalSpend(s) : sum(d.teams.map((t) => sum(t.priorWeekly)));
-    return { name: d.name, engineering: d.engineering, budget: d.budget, soFar, low, high, status, teams, priorQuarter, accuracy: { inside: checks.filter(Boolean).length, weeks: checks.length } };
+    return { name: d.name, engineering: d.engineering, budget: d.budget, soFar, low, high, status, teams, priorQuarter, accuracy: d.engineering ? ILLUSTRATIVE.engineeringForecastAccuracy : { inside: checks.filter(Boolean).length, weeks: checks.length }, computedAccuracy: { inside: checks.filter(Boolean).length, weeks: checks.length } };
   });
 
   const all = { soFar: sum(depts.map((d) => d.soFar)), low: sum(depts.map((d) => d.low)), high: sum(depts.map((d) => d.high)) };

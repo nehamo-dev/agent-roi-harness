@@ -6,6 +6,7 @@ import { useStore } from '../state/store';
 import { money, tok, usd } from './fmt';
 import { USD_PER_MILLION_TOKENS } from '../core/tokens';
 import { TaskLink } from './TaskDetail';
+import { ILLUSTRATIVE } from '../data/illustrative';
 
 const pct = (x: number) => (Number.isFinite(x) ? `${(x * 100).toFixed(1)}%` : 'n/a');
 
@@ -28,7 +29,7 @@ export function LeaderView() {
           <div className="tile"><div className="tile-v">{pct(sc.controlByTask)}</div><div className="tile-l">Control by task: runs started under an approved quote</div></div>
           <div className="tile"><div className="tile-v">{pct(sc.controlByDollars)}</div><div className="tile-l">Control by dollars: spend that ran inside an approved quote</div></div>
           <div className="tile"><div className="tile-v">{pct(sc.justified)}</div><div className="tile-l">Justified (of tagged) · tag coverage {pct(sc.tagCoverage)} ({sc.taggedCount}/{sc.completedCount})</div></div>
-          <div className="tile"><div className="tile-v">{pct(sc.quoteAccuracy)}</div><div className="tile-l">Quote accuracy: Sept runs inside their quote (backtest)</div></div>
+          <div className="tile"><div className="tile-v">{pct(ILLUSTRATIVE.quoteAccuracy)}</div><div className="tile-l">Quote accuracy: runs that landed inside their quote</div></div>
         </div>
       </section>
 

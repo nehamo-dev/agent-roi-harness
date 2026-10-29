@@ -82,7 +82,7 @@ Target: at least 70% of weeks inside the range (report-only if it misses). A ver
 | E2 | Recall | 70% | 100% (10/10) | PASS | Same caveat. 12 logs. |
 | E2 | Clean and tricky logs flagged | zero | 0 flags on 5 logs | PASS | Savings never exceed log cost (0 violations). |
 | E3 | Consistency checks | all pass | 8/8 | PASS | Totals match before/after hero run; hero $10.48 matches receipt/leader/CFO; paused decision moves both totals by the chosen option's cost (+$80.00 for "finish planned 6"); tag moves scorecard; trade-off changes receipt and CFO row; Q4 view's Q3 figure matches the leader and the paused decision reaches Q4; no NaN/negative/empty. |
-| E4 | Scorecard computed, not hard-coded | yes | yes | PASS | `scorecard()` in src/core/selectors.ts; changes when tagging (E3 check and browser: 87.0% → 87.2%) and when the paused run resolves. Quote accuracy tile = E1 coverage recomputed from the store. |
+| E4 | Scorecard computed, not hard-coded | yes | yes | PASS | `scorecard()` in src/core/selectors.ts; changes when tagging (E3 check and browser: 87.0% → 87.2%) and when the paused run resolves. Quote accuracy tile = E1 coverage recomputed from the store. Later changed by request: the tile now displays an illustrative 89% from `src/data/illustrative.ts`; `scorecard().quoteAccuracy` still computes 66.7% and E3/E4 check the computed value. |
 | E5 | Weeks inside forecast range | 70% | 4/6 weeks (67%), avg width 0.09x actual | MISS | Report-only. Re-run on org-scale weekly spend (one-off spend and the paused capability excluded, as in the CFO forecast). The range is now narrow; the misses are weeks just outside it. |
 
 Status values: PASS, MISS (ran and missed the threshold), NOT RUN. Write what you changed after any MISS and why.

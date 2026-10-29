@@ -96,6 +96,9 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 ## After C5: CFO Q4 redesign (from the mockup)
 - Section F evidence above describes the earlier Q3-only page. The CFO tab now opens on Q4 2026 so far (all departments, department tabs with status, three figures, by-team notes) with Q3 2026 · Closed one click away. Verified in the browser: no "token" on the page, Q4 Engineering "Q3 actual" equals the leader total, the paused-run decision changes Platform's Q4 note and forecast. NEEDS HUMAN EYES for layout against the mockup.
 
+## Illustrative figures (by request)
+- G4 exception: the leader's quote-accuracy tile shows 89% and the CFO's Engineering forecast accuracy shows 8 of 9 weeks (89%). Both come from `src/data/illustrative.ts`, not from the store. The computed values (66.7%, 67%) are unchanged in the evals, and README labels these two figures as illustrative.
+
 ## Known issues (Claude Code fills this in)
 Rank by how much each would hurt the demo, with a one-line suggested fix.
 1. FIXED: Try-it panel showed "low confidence" for almost every combination. Confidence now uses the type+size pool, with widening recalibrated on July/August: 15 of 90 combinations are low confidence (was nearly all).
