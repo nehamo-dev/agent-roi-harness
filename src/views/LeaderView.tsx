@@ -1,6 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { decisionOptions } from '../core/decision';
-import { heroTask } from '../core/reducer';
 import { budgetVsActual, byTeam, guardrails, OFF_PLAN_MIN_OVER, offPlanRuns, scorecard, totalSpend } from '../core/selectors';
 import { PAUSED_SCENARIO } from '../data/pausedScenario';
 import { useStore } from '../state/store';
@@ -17,7 +16,6 @@ export function LeaderView() {
   const inits = budgetVsActual(state);
   const offPlan = offPlanRuns(state);
   const rails = guardrails(state);
-  const hero = heroTask(state);
   const paused = state.tasks.find((t) => t.role === 'paused-decision')!;
   const options = decisionOptions({ ...paused, actualCost: state.pausedDecision ? paused.actualCost - state.pausedDecision.addedCost : paused.actualCost }, PAUSED_SCENARIO);
 
@@ -60,13 +58,6 @@ export function LeaderView() {
             ])}</tbody>
           </table>
         </div>
-      </section>
-
-      <section className="card highlight">
-        <h3>Latest run from the engineer view</h3>
-        {state.heroReceipt ? (
-          <p><TaskLink id={hero.id} /> · {hero.developer} · <b>{hero.capability}</b> · {usd(hero.actualCost)} ({tok(hero.actualCost)}) vs quote {usd(hero.quote.low)} – {usd(hero.quote.high)} · {state.heroReceipt.choice === 'platform' ? 'deeper platform fix' : 'surface fix'} · PR #{hero.prNumber} (simulated) · {offPlan.some((o) => o.task.id === hero.id) ? 'off plan, surfaced below.' : 'on plan, so not surfaced below.'}</p>
-        ) : <p className="muted"><TaskLink id={hero.id} /> ({hero.capability}) is still running in the engineer view. Play it to the receipt and it appears here.</p>}
       </section>
 
       <section className="card">

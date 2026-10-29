@@ -12,7 +12,7 @@ type Tab = (typeof TABS)[number];
 const STORY: Record<Tab, string> = {
   Engineer: 'Press Play. The agent quotes the task from similar past work, auto-approves, gets corrected by the waste detector, asks you to pick a trade-off, and ends with a receipt that lands in the shared store.',
   Leader: 'The same run now shows up in the budget. Only off-plan runs are surfaced. Decide the paused run and watch the totals and the CFO view move.',
-  CFO: 'One screen in dollars: spent, likely next, and what went over budget and why.',
+  CFO: 'The same runs now roll up to company spend. Only overspend is called out, by team, in plain language.',
 };
 
 export function App() {
@@ -28,11 +28,12 @@ export function App() {
         <nav>{TABS.map((t, i) => <button key={t} className={t === tab ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{i + 1}. {t}</button>)}</nav>
         <button className="reset" onClick={restart}>Reset demo</button>
       </header>
-      <div className="banner">Synthetic data: all tasks, costs, teams and PRs are seeded and simulated. Not real usage.</div>
+      <div className="banner">{tab === 'CFO' ? 'Synthetic data: all spend, budgets, teams and forecasts are seeded and illustrative. Not real usage.' : 'Synthetic data: all tasks, costs, teams and PRs are seeded and simulated. Not real usage.'}</div>
       <div className="story">
         <span><b>Step {step + 1} of 3 · {tab}.</b> {STORY[tab]}</span>
-        {step < 2 ? <button onClick={() => setTab(TABS[step + 1])}>Next: {TABS[step + 1]} →</button> : <button onClick={restart}>Restart demo</button>}
+        {step < 2 ? <button onClick={() => setTab(TABS[step + 1])}>Next: {TABS[step + 1]} →</button> : <button onClick={restart}>Restart ↻</button>}
       </div>
+      <hr className="sep" />
       {/* Views stay mounted so the engineer run survives tab switches. */}
       <TaskDetailHost>
       <main key={runKey}>

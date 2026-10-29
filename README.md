@@ -39,6 +39,7 @@ The story strip under the banner has a Next button for each step. "Reset demo" r
 | Part | Real or simulated | Notes |
 |---|---|---|
 | Org-scale spend (17 capabilities, ~$2.3M a quarter, ~3,000 engineers at ~$250/month) | Simulated | `src/data/enterprise.ts`. Each capability's total is built from runs drawn from the same per-run distribution as the task history; the 150 sampled tasks, including the hero run, are added on top |
+| Q4 2026 so far, all departments (Engineering, Customer Support, Marketing, Sales) | Simulated | `src/data/q4.ts`. Engineering teams continue from the Q3 model (one-offs removed, Growth ramping, the paused capability's open scope added by decision); other departments are seeded weekly series. Forecast and accuracy computed in `src/core/q4.ts` |
 | Owner's notes on over-budget capabilities | Simulated | `src/data/ownerNotes.ts`; the paused capability's note comes from the leader's decision |
 | Task history (150 tasks, 4 teams, Jul–Sep 2026) | Simulated | Seeded generator (`src/data/generate.ts`), heavy-tailed costs; averages $14 per developer per active day with 94% of developer-days under $30 (Claude Code docs: ~$13 average, 90% under $30), 4 runaway runs at $100–$300 |
 | Cost estimator and quotes | **Real logic** on simulated data | `src/core/estimator.ts`. Sees task features and past tasks only, never generator parameters |

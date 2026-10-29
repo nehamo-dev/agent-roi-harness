@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Area, Bar, ComposedChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { q4Summary, type DeptStatus } from '../core/q4';
 import { heroTask } from '../core/reducer';
 import { capabilityRows, finishedWithinBudget, nextQuarterForecast, orgWeekly, overBudgetItems, pausedScopeCost, totalSpend } from '../core/selectors';
 import { sum } from '../core/stats';
@@ -19,10 +20,22 @@ function niceTicks(max: number): number[] {
 }
 
 type Sheet = 'trace' | 'all' | null;
+type Quarter = 'Q3' | 'Q4';
+
+const STATUS_LABEL: Record<DeptStatus, string> = {
+  ok: 'On or under budget',
+  watch: 'Watch: teams over, or the forecast range runs above budget',
+  over: 'Over budget',
+};
 
 export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
   const { state } = useStore();
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [quarter, setQuarter] = useState<Quarter>('Q4');
+  const [deptName, setDeptName] = useState('Engineering');
+  const q4 = q4Summary(state, money);
+  const dept = q4.depts.find((d) => d.name === deptName) ?? q4.depts[0];
+  const asOf = dayLabel(q4.asOf);
   const rows = capabilityRows(state);
   const total = totalSpend(state);
   const budgetTotal = sum(rows.map((r) => r.budget));
@@ -48,6 +61,59 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
 
   return (
     <div className="cfo">
+      <div className="cfo-top">
+        <div>
+          <h2 className="cfo-title">{quarter === 'Q4' ? 'AI spend, Q4 2026 so far' : 'AI spend, Q3 2026 · Engineering'}</h2>
+          <p className="cfo-subtitle">{quarter === 'Q4'
+            ? <>All departments: {money(q4.all.soFar)} spent through {asOf}, with a full-quarter forecast of {moneyRange(q4.all.low, q4.all.high)}. Engineering is about {Math.round(q4.engShare * 100)}% of it.</>
+            : <>Closed quarter. Engineering only, where spend is tracked by capability.</>}</p>
+        </div>
+        <div className="quarter-switch">
+          <button className={quarter === 'Q3' ? 'active' : ''} onClick={() => setQuarter('Q3')}>Q3 2026 · Closed</button>
+          <button className={quarter === 'Q4' ? 'active' : ''} onClick={() => setQuarter('Q4')}>Q4 2026 · Current</button>
+        </div>
+      </div>
+
+      {quarter === 'Q4' ? (
+        <>
+          <div className="dept-tabs">{q4.depts.map((d) => (
+            <button key={d.name} className={d.name === dept.name ? 'dept active' : 'dept'} onClick={() => setDeptName(d.name)}>
+              <span className={`dot ${d.status}`} /><b>{d.name}</b><span className="dept-figs">{money(d.soFar)} so far · Forecast {moneyRange(d.low, d.high)}</span>
+            </button>
+          ))}</div>
+          <div className="dept-legend">{(['ok', 'watch', 'over'] as DeptStatus[]).map((st) => <span key={st}><span className={`dot ${st}`} />{STATUS_LABEL[st]}</span>)}</div>
+
+          <section className="q4-card">
+            <p className="muted">Actual spend through {asOf}, shown beside the forecast for the full quarter. The forecast uses recent weeks and known commitments.</p>
+            <div className="q4-boxes">
+              <div className="q4-box">
+                <div className="cfo-label">Actual so far</div>
+                <div className="cfo-big">{money(dept.soFar)}</div>
+                <div className="cfo-sub">Day {q4.elapsed} of {q4.days}, {Math.round((q4.elapsed / q4.days) * 100)}% of the quarter</div>
+              </div>
+              <div className="q4-box">
+                <div className="cfo-label">Full-quarter forecast</div>
+                <div className="cfo-big">{moneyRange(dept.low, dept.high)}</div>
+                <div className="cfo-sub">Against a {money(dept.budget)} budget. Q3 actual was {money(dept.priorQuarter)}</div>
+              </div>
+              <div className="q4-box">
+                <div className="cfo-label">Forecast accuracy</div>
+                <div className="cfo-big">{Math.round((dept.accuracy.inside / dept.accuracy.weeks) * 100)}%</div>
+                <div className="cfo-sub">{dept.accuracy.inside} of the last {dept.accuracy.weeks} weeks landed inside the forecast range</div>
+              </div>
+            </div>
+            <h4 className="by-team-h">By team</h4>
+            <div className="by-team">{dept.teams.map((t) => (
+              <div key={t.team} className="team-line">
+                <b>{t.team}</b>
+                <div>{money(t.soFar)} so far<div className="cfo-sub">Forecast {moneyRange(t.low, t.high)}</div></div>
+                <div className="muted">{t.note}</div>
+              </div>
+            ))}</div>
+          </section>
+        </>
+      ) : (
+      <>
       <p className="cfo-headline">
         Over the last {weeks.length} weeks, engineering spent {money(total)} on AI coding. {over.length} {over.length === 1 ? 'capability' : 'capabilities'} ran over budget by {money(overSum)} combined; overall, spend came in {money(Math.abs(net))} {net <= 0 ? 'under' : 'over'} budget.
       </p>
@@ -101,11 +167,16 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
         The other {rest.length} capabilities came in under budget: {money(sum(rest.map((r) => r.spent)))} spent of {money(sum(rest.map((r) => r.budget)))} budgeted ({Math.round((sum(rest.map((r) => r.spent)) / sum(rest.map((r) => r.budget))) * 100)}%){restInProgress ? `, with ${restInProgress} still in progress` : ''}.
       </p>
 
-      <div className="cfo-footer">
-        <span>Cost per outcome, not value.</span>
-        <span>Synthetic data, modeled on a ~{ORG_ENGINEERS.toLocaleString('en-US')}-engineer org.</span>
-        <button className="link" onClick={() => setSheet('trace')}>Follow {hero.capability} back to the engineer’s receipt</button>
-        <button className="link" onClick={() => setSheet('all')}>See all capabilities</button>
+      </>
+      )}
+
+      <div className="cfo-foot">
+        <p><b>Cost per outcome, not value.</b> These figures show what work cost against what was approved. They do not measure the business value of what was built.</p>
+        <div className="cfo-links">
+          <button className="link" onClick={() => setSheet('all')}>See cost per capability</button>
+          <button className="link" onClick={() => setSheet('trace')}>Follow {hero.capability} back to the engineer’s receipt</button>
+        </div>
+        <p className="muted">Synthetic data, modeled on a ~{ORG_ENGINEERS.toLocaleString('en-US')}-engineer org.</p>
       </div>
 
       {sheet && (
@@ -123,7 +194,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
               </>
             ) : (
               <>
-                <h3>All capabilities this quarter</h3>
+                <h3>Cost per capability, Q3 2026</h3>
                 <table className="plain">
                   <thead><tr><th>Capability</th><th>Initiative</th><th>Status</th><th className="num">Budget</th><th className="num">Spent</th><th className="num">Over / under</th></tr></thead>
                   <tbody>{[...rows].sort((a, b) => b.over - a.over).map((r) => (

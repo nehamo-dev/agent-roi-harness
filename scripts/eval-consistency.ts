@@ -4,6 +4,7 @@ import { decisionOptions } from '../src/core/decision';
 import { estimate } from '../src/core/estimator';
 import { reducer, heroTask, quoteHistory, type DemoState } from '../src/core/reducer';
 import { budgetVsActual, capabilityRows, finishedWithinBudget, guardrails, nextQuarterForecast, offPlanRuns, orgWeekly, overBudgetItems, scorecard, totalSpend } from '../src/core/selectors';
+import { q4Summary } from '../src/core/q4';
 import { computeReceipt, type Choice } from '../src/core/session';
 import { sum } from '../src/core/stats';
 import { buildDataset } from '../src/data/dataset';
@@ -69,6 +70,19 @@ const rowS = capabilityRows(sS).find((c) => c.capability === heroP.capability)!;
 check('Different trade-off changes receipt and downstream numbers', !close(sS.heroReceipt!.actual, sP.heroReceipt!.actual) && !close(rowS.spent, rowP.spent) && !close(totalSpend(sS), totalSpend(sP)),
   `surface receipt $${sS.heroReceipt!.actual.toFixed(2)} vs platform $${sP.heroReceipt!.actual.toFixed(2)}; CFO row $${rowS.spent.toFixed(2)} vs $${rowP.spent.toFixed(2)}`);
 
+// 5b. Q4 view: Q3 figure matches the leader, department totals add up, and the paused decision reaches Q4.
+{
+  const m = (n: number) => n.toFixed(0);
+  const qa = q4Summary(initial, m);
+  const qb = q4Summary(sD, m);
+  const engA = qa.depts.find((d) => d.engineering)!;
+  const platA = engA.teams.find((t) => t.note.startsWith('Wider range'));
+  const platB = qb.depts.find((d) => d.engineering)!.teams.find((t) => t.team === platA?.team);
+  check('Q4 view agrees with Q3 and the paused decision',
+    close(engA.priorQuarter, leaderTotal(initial)) && close(qa.all.soFar, sum(qa.depts.map((d) => d.soFar))) && !!platA && !!platB && platB.note !== platA.note && platB.high < platA.high,
+    `Engineering "Q3 actual" $${engA.priorQuarter.toFixed(2)} = leader total; all-department so far $${qa.all.soFar.toFixed(0)} = sum of departments; Platform Q4 forecast high $${platA?.high.toFixed(0)} -> $${platB?.high.toFixed(0)} after the decision`);
+}
+
 // 6. No NaN, negative or empty values in view-level outputs.
 const bad: string[] = [];
 function walk(v: unknown, path: string) {
@@ -80,7 +94,7 @@ function walk(v: unknown, path: string) {
   else if (v && typeof v === 'object') Object.entries(v).forEach(([k, x]) => walk(x, `${path}.${k}`));
 }
 for (const [label, s] of [['initial', initial], ['all actions', reducer(runHero(sD, 'platform'), { kind: 'tag', taskId: untagged.id, justified: 'yes' })]] as const) {
-  walk({ sc: scorecard(s), bva: budgetVsActual(s), off: offPlanRuns(s).map((o) => ({ overBy: o.overBy, note: o.note })), caps: capabilityRows(s).map(({ sampled, aggregate, ...r }) => r), weeks: orgWeekly(s), fc: nextQuarterForecast(s), within: finishedWithinBudget(s), overItems: overBudgetItems(s, (n) => n.toFixed(0)).map((o) => ({ effect: o.effect, over: o.row.over })), rails: guardrails(s) }, label);
+  walk({ sc: scorecard(s), bva: budgetVsActual(s), off: offPlanRuns(s).map((o) => ({ overBy: o.overBy, note: o.note })), caps: capabilityRows(s).map(({ sampled, aggregate, ...r }) => r), weeks: orgWeekly(s), fc: nextQuarterForecast(s), within: finishedWithinBudget(s), overItems: overBudgetItems(s, (n) => n.toFixed(0)).map((o) => ({ effect: o.effect, over: o.row.over })), rails: guardrails(s), q4: q4Summary(s, (n) => n.toFixed(0)).depts.map(({ teams, ...d }) => ({ ...d, teams: teams.map(({ note, ...t }) => t) })) }, label);
 }
 check('No NaN, negative or empty values (variances excepted)', bad.length === 0, bad.length ? bad.slice(0, 5).join('; ') : 'scorecard, budgets, off-plan, capabilities, reliability, guardrails, forecast all clean');
 

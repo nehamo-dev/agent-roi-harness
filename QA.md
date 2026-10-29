@@ -51,7 +51,7 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 | E5 | Guardrail recommendations are computed from the data and cite real numbers | PASS | Computed in `guardrails()`: After recalibration: "65% of 34 web-frontend runs landed inside their quote, vs 73% across all areas"; "5 completed runs went past 3x their ceiling, spending $713 beyond that point". |
 | E6 | Tagging queue: yes and no buttons work, and the scorecard updates live | N/A | Tagging queue removed from the leader view by request. The tag action and scorecard update remain in the store and are still checked by E3. |
 | E7 | Scorecard shows control by task, control by dollars, justified rate with tag coverage, and quote accuracy | PASS | Tiles after recalibration (hero completed): control by task 86.7%, control by dollars 36.4%, justified 87.0% with tag coverage 72.5%, quote accuracy 66.7%. |
-| E8 | The hero task from the engineer view appears here | PASS | "Latest run from the engineer view: T-150 · Ana R. · Saved cards at checkout · $10.48 ... PR #4249 (simulated)". |
+| E8 | The hero task from the engineer view appears here | N/A | "Latest run from the engineer view" card removed from the leader view by request. The hero task still flows into the CFO view (trace link) and E3 checks its cost. |
 
 ## F. CFO view
 | # | Check | Result | Evidence |
@@ -92,6 +92,9 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 - README read-through
 - H1 (timed narration) and H3 (layout at 1280px and on a laptop screen)
 - G2 visual: that the terminal looks generic and nothing reads as branded
+
+## After C5: CFO Q4 redesign (from the mockup)
+- Section F evidence above describes the earlier Q3-only page. The CFO tab now opens on Q4 2026 so far (all departments, department tabs with status, three figures, by-team notes) with Q3 2026 · Closed one click away. Verified in the browser: no "token" on the page, Q4 Engineering "Q3 actual" equals the leader total, the paused-run decision changes Platform's Q4 note and forecast. NEEDS HUMAN EYES for layout against the mockup.
 
 ## Known issues (Claude Code fills this in)
 Rank by how much each would hurt the demo, with a one-line suggested fix.

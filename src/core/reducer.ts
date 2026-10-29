@@ -1,11 +1,13 @@
 // Shared demo state. Pure reducer so scripts can replay the same actions the UI dispatches.
 import type { DecisionOption } from './decision';
 import type { Receipt } from './session';
+import type { Q4Data } from '../data/q4';
 import type { CapabilityAggregate, Justified, Task } from './types';
 
 export interface DemoState {
   tasks: Task[];
   capabilities: CapabilityAggregate[];
+  q4: Q4Data;
   heroReceipt: Receipt | null;
   pausedDecision: DecisionOption | null;
 }

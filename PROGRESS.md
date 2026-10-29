@@ -63,6 +63,12 @@
 - Paused run (T-149) now costs $160 so far (2 services migrated in this run at $80 each). Options are priced at that rate: approve all 14 (+$720 → $880), finish planned 6 (+$80 → $240), stop (+$1.50 → $161.50). Tokens shown beside every amount. CFO effect still uses the capability's progress (5 of 14 done), so CFO numbers are unchanged.
 - Justified tagging queue removed from the leader view. The justified/tag-coverage tile stays; the tag action remains in the reducer and E3.
 
+## CFO Q4 view (from the mockup)
+- CFO tab opens on "AI spend, Q4 2026 so far" (as of 2026-10-29, day 29 of 92): all-department total and forecast, department tabs with on/watch/over status, three figures (actual so far, full-quarter forecast vs budget and Q3 actual, forecast accuracy over the last 12 weeks), by-team rows with notes. "Q3 2026 · Closed" shows the previous one-screen briefing.
+- Paused-run scope changed to 10 planned / 14 found / 8 done (this run did 1 at $160). Leader options: +$960 → $1,120, +$320 → $480, +$1.50 → $161.50. Capability-level open question ≈ $139K.
+- Leader view: "Latest run from the engineer view" card removed by request.
+- Status rule: over if forecast low > budget; watch if forecast high > budget or any team's forecast high > its budget; otherwise on/under.
+
 ## Open questions
 - (resolved) E1 recalibration: approved and done on July/August only; disclosed in EVAL.md.
 
