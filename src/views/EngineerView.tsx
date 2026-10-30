@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { decisionOptions, runRate, type DecisionKey } from '../core/decision';
 import { estimate } from '../core/estimator';
 import { followUp, heroTask, quoteHistory } from '../core/reducer';
+import type { LogEvent } from '../core/eventlog';
 import { AUTO_APPROVE_LIMIT, runSteps, wasteCaught, type RunStep } from '../core/session';
 import { HERO_SCENARIO as S } from '../data/heroScenario';
 import { PAUSED_SCENARIO as P } from '../data/pausedScenario';
@@ -39,6 +40,10 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
     if (step >= last && hero.status === 'running') dispatch({ kind: 'heroPaused', cost: pausedCost });
   }, [step, last, hero.status, pausedCost, dispatch]);
 
+  // Keep the newest message in view as the run plays.
+  const transcript = useRef<HTMLDivElement>(null);
+  useEffect(() => { transcript.current?.scrollTo({ top: transcript.current.scrollHeight, behavior: 'smooth' }); }, [step, state.pausedDecision, state.heroEscalated]);
+
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTimer = () => { if (timer.current) clearInterval(timer.current); timer.current = null; setPlaying(false); };
   useEffect(() => stopTimer, []);
@@ -64,124 +69,174 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   const status = decided === 'planned-only' ? ['finished, partial scope', 'ok'] : decided === 'stop' ? ['stopped and reverted', 'dim']
     : escalated ? ['paused, waiting for leader', 'warn'] : atDecision ? ['paused, decision needed', 'bad'] : step > 0 ? ['running', 'ok'] : ['not started', 'dim'];
 
-  const line = (s: RunStep, i: number) => {
-    if (s.kind === 'started') return (
-      <div key={i} className="eng-line"><span className="tag started">▶ Started</span>&nbsp; Working through the {P.plannedUnits} services in the plan, one at a time.
-        <div className="eng-detail">migrate {S.firstService} to mTLS</div></div>);
-    if (s.kind === 'corrected' && s.flag?.cls === 'repeated-read') return (
-      <div key={i} className="eng-line"><span className="tag corrected">↺ Course-corrected</span>&nbsp; The agent re-read the same certificate config {s.flag.count} times without changing it. The harness had it keep the file in memory instead. <span className="saved">Saved {tk(s.flag.dollarsSaved)}.</span>
-        <div className="eng-detail">read {s.flag.subject} x{s.flag.count}, no edit in between</div></div>);
-    if (s.kind === 'corrected' && s.flag) return (
-      <div key={i} className="eng-line"><span className="tag corrected">↺ Course-corrected</span>&nbsp; A test failed {s.flag.count} times in a row with no code change. The harness stopped the retries and had the agent find the cause, {S.testCause}. <span className="saved">Saved {tk(s.flag.dollarsSaved)}.</span>
-        <div className="eng-detail">{s.flag.subject}, exit 1 x{s.flag.count}</div></div>);
+  // Tool calls for each step come straight from the event log.
+  const segment = (i: number): LogEvent[] => S.log.events.slice(i === 0 ? 0 : S.steps[i - 1].end + 1, S.steps[i].end + 1);
+  const tool = (e: LogEvent, k: number) => {
+    const verb = e.kind === 'read' ? 'Read' : e.kind === 'edit' ? 'Edit' : 'Bash';
+    const target = e.file ?? e.cmd;
+    const failed = (e.exitCode ?? 0) !== 0;
     return (
-      <div key={i} className="eng-line"><span className="tag decision">■ Decision needed</span>&nbsp; New discovery: the job is bigger than planned. The agent found <b>{P.discoveredUnits} services</b> that need mTLS, not the {P.plannedUnits} in the plan, and {S.sidecarNote}. Spend has passed the {tk(ceiling).replace(' tokens', '')}-token ceiling, and finishing all {P.discoveredUnits} would take about {tk(options[0].finalCost)}.
-        <div className="eng-detail">scope: {P.plannedUnits} planned, {P.discoveredUnits} found, {s.servicesDone} done · paused at {tk(s.spentAfter)}</div></div>);
+      <div key={k} className={`cc-tool${failed ? ' fail' : ''}`}>
+        <span className="cc-tool-verb">{verb}</span><span className="cc-tool-target">{target}</span>
+        {e.kind === 'command' || e.kind === 'test' ? <span className="cc-tool-exit">{failed ? `exit ${e.exitCode}` : 'ok'}</span> : null}
+        <span className="cc-tool-cost">{tk(e.costDelta).replace(' tokens', '')}</span>
+      </div>
+    );
   };
+  const notice = (s: RunStep) => s.flag && (
+    <div className="cc-notice"><b>Harness</b> {s.flag.cls === 'repeated-read'
+      ? <>The agent re-read <code>{s.flag.subject}</code> {s.flag.count} times without changing it. Kept the file in memory instead.</>
+      : <>A test failed {s.flag.count} times in a row with no code change. Stopped the retries and had the agent find the cause, {S.testCause}.</>}
+      <span className="saved"> Saved {tk(s.flag.dollarsSaved)}.</span></div>
+  );
+  const narration = (s: RunStep, i: number) => s.kind === 'started'
+    ? `Working through the ${P.plannedUnits} services in the plan, one at a time. Starting with ${S.firstService}: shared client library first, then the service.`
+    : s.kind === 'decision'
+      ? null
+      : i === 1 ? 'auth-service is done. Moving on to the next service.' : 'Next service. Running the integration tests after the change.';
 
   const chosenLabel: Record<DecisionKey, string> = {
-    continue: `Do all ${P.discoveredUnits} services. It needs your leader, so it was sent to them.`,
+    continue: `Do all ${P.discoveredUnits} services.`,
     'planned-only': `Finish the ${P.plannedUnits} planned and re-quote the rest.`,
     stop: 'Stop and revert.',
   };
   const final = decided && state.pausedDecision ? state.pausedDecision.finalCost : 0;
   const over = final - ceiling;
+  const others = state.tasks.filter((t) => t.developer === hero.developer && t.id !== hero.id).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+  const pct = Math.min(1, spent / Math.max(spent, ceiling));
+  const caught = shown.filter((s) => s.flag);
 
   return (
-    <div className="eng">
-      <section className="eng-card">
-        <div className="eng-head">
-          <div className="eng-intro">
-            <div className="muted small">{hero.developer} · {hero.team} · task <TaskLink id={hero.id} /> · <TaskLink id={hero.id}>{S.ticket} in Jira ↗</TaskLink> <span>(full ticket and design doc, simulated)</span></div>
-            <h1>{S.title}</h1>
-            <div className="eng-summary">{S.summary}</div>
-          </div>
-          <div className="eng-actions">
-            <button className="btn-primary" onClick={mainAction}>{step === 0 && !playing ? `Approve ${tk(ceiling)} and start` : playing ? 'Stop and reset' : 'Replay'}</button>
-            <button onClick={() => { stopTimer(); advance(); }} disabled={atDecision}>Step</button>
-          </div>
-        </div>
-        <div className="eng-quote">
-          <div className="eng-quote-row">
-            <div><span className="eyebrow">Quote</span> <span className="eng-quote-v">{tk(hero.quote.low).replace(' tokens', '')} – {tk(ceiling)}</span></div>
-            <div className="eng-summary">The plan assumed <b>{P.plannedUnits} services</b>. The ceiling is {tk(ceiling)}. {ceiling > AUTO_APPROVE_LIMIT ? `Above your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so you approve it first.` : `Under your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so it starts on its own.`}</div>
-          </div>
-          <div className="eng-design">
-            <div className="eyebrow">What the design is</div>
-            <ul>{S.design.map((d) => <li key={d}>{fill(d)}</li>)}</ul>
-            <div className="muted">{fill(S.outOfScope)}</div>
-            <div className="muted">{S.mainRisk}</div>
-          </div>
-        </div>
-      </section>
+    <div className="cc-window">
+      <div className="cc-titlebar">
+        <span className="cc-lights"><i /><i /><i /></span>
+        <span className="cc-title">{S.ticket} · {S.title}</span>
+        <span className="cc-sim">simulated session · synthetic data</span>
+      </div>
+      <div className="cc-body">
+        <aside className="cc-sidebar">
+          <div className="cc-side-h">Sessions</div>
+          <div className="cc-session active"><span className={`cc-dot st-${status[1]}`} />{S.title}<small>{hero.id} · {status[0]}</small></div>
+          {others.map((t) => (
+            <div key={t.id} className="cc-session"><span className="cc-dot st-dim" />{t.capability}<small><TaskLink id={t.id} /> · {t.date}</small></div>
+          ))}
+        </aside>
 
-      <section className="eng-term" aria-label="Simulated agent session">
-        <div className="eng-bar"><span>agent session · simulated</span><span>{tk(spent)} / ceiling {tk(ceiling).replace(' tokens', '')} · services {doneText} · <span className={`st-${status[1]}`}>{status[0]}</span></span></div>
-        <div className="eng-body">
-          {step === 0 && <div className="eng-dim">Nothing has run yet. Use the blue button above to approve the ceiling and start.</div>}
-          {shown.map(line)}
-          {(decided || escalated) && <div className="eng-line"><span className="tag started">› You chose</span>&nbsp; {chosenLabel[escalated && !decided ? 'continue' : decided!]}</div>}
-        </div>
-      </section>
-
-      {atDecision && !decided && !escalated && hero.status === 'paused' && (
-        <section className="eng-card eng-decide">
-          <h2>Needs a decision</h2>
-          <p className="eng-summary">The job is bigger than quoted. Each choice shows what it costs from here, and who is allowed to make it.</p>
-          <div className="eng-opts">{options.map((o) => (
-            <button key={o.key} className="eng-opt" onClick={() => choose(o.key)}>
-              <b>{o.label}</b>
-              <div className="eng-opt-v">+{tk(o.addedCost)}</div>
-              <div className="muted">total {tk(o.finalCost)}</div>
-              <div className="eng-summary">{o.key === 'continue' ? `${o.detail.replace(/\.$/, '')} (${tk(rate)} per service).` : o.detail}</div>
-              {o.addedCost > AUTO_APPROVE_LIMIT
-                ? <div className="authority warn">Above your approval limit. Goes to your leader.</div>
-                : <div className="authority ok">You can decide this.</div>}
-            </button>
-          ))}</div>
-        </section>
-      )}
-
-      {escalated && (
-        <section className="eng-card eng-escalated">
-          <b>Sent to your leader</b>
-          <p>{state.decidedBy === 'leader' && state.pausedDecision
-            ? <>Your leader chose “{state.pausedDecision.label}”. Final cost {tk(state.pausedDecision.finalCost)}. </>
-            : <>Doing all {P.discoveredUnits} services costs more than you can approve alone. The run stays paused at {tk(pausedCost)} until they decide. </>}
-          <button className="link" onClick={onOpenLeader}>Open it in the Leader view →</button></p>
-        </section>
-      )}
-
-      {decided && decided !== 'continue' && (
-        <section className="eng-card">
-          <div className="eng-receipt-head"><h2>Receipt</h2><span className="muted small">Capability: {decided === 'planned-only' ? `mTLS on ${P.plannedUnits} of ${P.discoveredUnits} services` : 'not delivered'}</span></div>
-          <div className="eng-stats">
-            <div className="eng-stat"><div className="muted small">Quoted</div><div className="eng-stat-v">{tk(ceiling)}</div><div className="muted small">ceiling, for {P.plannedUnits} services</div></div>
-            <div className="eng-stat"><div className="muted small">Spent</div><div className="eng-stat-v">{tk(final)}</div><div className="muted small">{decided === 'planned-only' ? `${tk(over)} over the ceiling, ${Math.round((over / ceiling) * 100)}% over` : `${tk(over)} over the ceiling`}</div></div>
-            <div className="eng-stat"><div className="muted small">Waste caught on the way</div><div className="eng-stat-v saved-v">{tk(wasteCaught(S))}</div><div className="muted small">repeated reads and retries</div></div>
+        <main className="cc-main">
+          <div className="cc-transcript" ref={transcript}>
+            <div className="cc-user">
+              Implement {S.ticket}: {S.title.toLowerCase()}. {S.summary} <TaskLink id={hero.id}>Full ticket and design doc ↗</TaskLink>
+            </div>
+            <div className="cc-agent">
+              <p>Here is the design I will follow:</p>
+              <ul>{S.design.map((d) => <li key={d}>{fill(d)}</li>)}</ul>
+              <p className="muted">{fill(S.outOfScope)} {S.mainRisk}</p>
+              {step === 0 && <p>The quote is in the economics panel. Approve it there and I will start.</p>}
+            </div>
+            {shown.map((s, i) => (
+              <div key={i} className="cc-turn">
+                {narration(s, i) && <div className="cc-agent"><p>{narration(s, i)}</p></div>}
+                <div className="cc-tools">{segment(i).map(tool)}</div>
+                {notice(s)}
+                {s.kind === 'decision' && (
+                  <div className="cc-agent cc-stop">
+                    <p><b>I need a decision before going further.</b> The job is bigger than planned: I found <b>{P.discoveredUnits} services</b> that need mTLS, not the {P.plannedUnits} in the plan, and {S.sidecarNote}. Spend has passed the {tk(ceiling)} ceiling, and finishing all {P.discoveredUnits} would take about {tk(options[0].finalCost)}.</p>
+                    <p className="muted">Paused at {tk(s.spentAfter)} with {s.servicesDone} of {P.discoveredUnits} services done. Options are in the economics panel.</p>
+                  </div>
+                )}
+              </div>
+            ))}
+            {(decided || escalated) && <div className="cc-user">{chosenLabel[escalated && !decided ? 'continue' : decided!]}</div>}
+            {escalated && <div className="cc-agent"><p>{state.decidedBy === 'leader' && state.pausedDecision ? `Your leader chose “${state.pausedDecision.label}”.` : 'That is above your approval limit, so I sent it to your leader and stayed paused.'}</p></div>}
+            {decided === 'planned-only' && <div className="cc-agent"><p>Done. The planned {P.plannedUnits} services are on mTLS and the PR is open. The other {P.discoveredUnits - P.plannedUnits} are in a new task{split ? <> (<TaskLink id={split.id} />)</> : null} with their own quote.</p></div>}
+            {decided === 'stop' && <div className="cc-agent"><p>Reverted the partial changes. Nothing ships; the scope finding is in the ticket.</p></div>}
           </div>
-          <p>{decided === 'planned-only'
-            ? `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You finished the planned ${P.plannedUnits} and split the other ${P.discoveredUnits - P.plannedUnits} into a new task, so the extra spend is explained by a scope change, not by waste.`
-            : `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You stopped early to avoid a ${tk(options[0].finalCost)} bill. The ${tk(final)} bought a clear answer about the real scope, not a shipped capability.`}</p>
-          <p className="eng-receipt-foot">
-            <span className="muted">{decided === 'planned-only' ? <>Simulated PR #{hero.prNumber} · new task {split ? <TaskLink id={split.id} /> : null} for the other {P.discoveredUnits - P.plannedUnits} services</> : 'No PR. Partial changes reverted.'}</span>
-            <button className="link" onClick={onOpenLeader}>Now visible to your leader →</button>
-          </p>
-        </section>
-      )}
+          <div className="cc-input"><span>Replay only · this session is simulated</span><button disabled>↑</button></div>
+        </main>
 
-      <section className="eng-card eng-hood">
-        <button className="eng-hood-toggle" onClick={() => setOpen((v) => !v)}>
-          <span>Under the hood <span className="muted">· how the quote and the stops were decided</span></span><span className="accent-text">{open ? 'Hide' : 'Show'}</span>
-        </button>
-        {open && (
-          <div className="eng-hood-body">
-            <div><div className="eyebrow">Where the quote came from</div><p>The estimator looked at {est.poolSize} past {hero.type === 'migration' ? 'infrastructure migrations' : 'tasks'} of similar size. It assumed {P.plannedUnits} services because the ticket listed {P.plannedUnits}. Amounts are in tokens. The leader and CFO views convert them to dollars at a synthetic $6 per million tokens.</p></div>
-            <div><div className="eyebrow">Why the first two stops were automatic</div><p>The detector reads the session log. A repeat with nothing changed in between is waste, so it is fixed without asking. A repeat after a real edit is left alone.</p></div>
-            <div><div className="eyebrow">Why the third stop asked you</div><p>Spend crossed the ceiling and the remaining work was a different size than planned. That is a scope decision with a real cost, so a person makes it.</p></div>
-          </div>
-        )}
-      </section>
+        <aside className="cc-panel" aria-label="Economics">
+          <div className="cc-panel-h"><b>Economics</b><span className="muted small">{hero.id} · tokens</span></div>
+
+          <section className="cc-sec">
+            <div className="eyebrow">Quote</div>
+            <div className="cc-big">{tk(hero.quote.low).replace(' tokens', '')} – {tk(ceiling)}</div>
+            <p className="small">The plan assumed <b>{P.plannedUnits} services</b>. The ceiling is {tk(ceiling)}. {ceiling > AUTO_APPROVE_LIMIT ? `Above your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so you approve it first.` : `Under your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so it starts on its own.`}</p>
+            <div className="cc-actions">
+              <button className="btn-primary" onClick={mainAction}>{step === 0 && !playing ? `Approve ${tk(ceiling)} and start` : playing ? 'Stop and reset' : 'Replay'}</button>
+              <button onClick={() => { stopTimer(); advance(); }} disabled={atDecision}>Step</button>
+            </div>
+          </section>
+
+          <section className="cc-sec">
+            <div className="eyebrow">Spend</div>
+            <div className="cc-meter-row"><b>{tk(spent)}</b><span className="muted small">of {tk(ceiling)} ceiling</span></div>
+            <div className="cc-meter"><div className={spent > ceiling ? 'over' : ''} style={{ width: `${pct * 100}%` }} />{spent > ceiling && <span className="cc-ceiling" style={{ left: `${(ceiling / spent) * 100}%` }} />}</div>
+            <div className="small">Services {doneText} · <span className={`st-${status[1]}`}>{status[0]}</span></div>
+          </section>
+
+          <section className="cc-sec">
+            <div className="eyebrow">Waste caught</div>
+            {caught.length === 0 ? <p className="muted small">Nothing yet.</p> : (
+              <ul className="cc-caught">{caught.map((s) => (
+                <li key={s.flag!.subject}>{s.flag!.cls === 'repeated-read' ? `Repeated reads of ${s.flag!.subject}` : `Retry loop on ${s.flag!.subject}`}<span className="saved-v">{tk(s.flag!.dollarsSaved)}</span></li>
+              ))}</ul>
+            )}
+          </section>
+
+          {atDecision && !decided && !escalated && hero.status === 'paused' && (
+            <section className="cc-sec cc-decide">
+              <div className="eyebrow">Needs a decision</div>
+              <p className="small">The job is bigger than quoted. Each choice shows what it costs from here, and who is allowed to make it.</p>
+              {options.map((o) => (
+                <button key={o.key} className="cc-opt" onClick={() => choose(o.key)}>
+                  <span className="cc-opt-top"><b>{o.label}</b><b>+{tk(o.addedCost)}</b></span>
+                  <span className="muted small">total {tk(o.finalCost)} · {o.key === 'continue' ? `${tk(rate)} per service` : o.detail}</span>
+                  {o.addedCost > AUTO_APPROVE_LIMIT
+                    ? <span className="authority warn">Above your approval limit. Goes to your leader.</span>
+                    : <span className="authority ok">You can decide this.</span>}
+                </button>
+              ))}
+            </section>
+          )}
+
+          {escalated && (
+            <section className="cc-sec cc-escalated">
+              <b>Sent to your leader</b>
+              <p className="small">{state.decidedBy === 'leader' && state.pausedDecision
+                ? <>Your leader chose “{state.pausedDecision.label}”. Final cost {tk(state.pausedDecision.finalCost)}. </>
+                : <>Doing all {P.discoveredUnits} services costs more than you can approve alone. The run stays paused at {tk(pausedCost)} until they decide. </>}
+                <button className="link" onClick={onOpenLeader}>Open it in the Leader view →</button></p>
+            </section>
+          )}
+
+          {decided && decided !== 'continue' && (
+            <section className="cc-sec">
+              <div className="eyebrow">Receipt</div>
+              <div className="small muted">Capability: {decided === 'planned-only' ? `mTLS on ${P.plannedUnits} of ${P.discoveredUnits} services` : 'not delivered'}</div>
+              <div className="cc-receipt">
+                <div><span className="muted small">Quoted</span><b>{tk(ceiling)}</b><span className="muted small">ceiling, for {P.plannedUnits} services</span></div>
+                <div><span className="muted small">Spent</span><b>{tk(final)}</b><span className="muted small">{decided === 'planned-only' ? `${tk(over)} over, ${Math.round((over / ceiling) * 100)}% over` : `${tk(over)} over the ceiling`}</span></div>
+                <div><span className="muted small">Waste caught</span><b className="saved-v">{tk(wasteCaught(S))}</b><span className="muted small">repeated reads and retries</span></div>
+              </div>
+              <p className="small">{decided === 'planned-only'
+                ? `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You finished the planned ${P.plannedUnits} and split the other ${P.discoveredUnits - P.plannedUnits} into a new task, so the extra spend is explained by a scope change, not by waste.`
+                : `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You stopped early to avoid a ${tk(options[0].finalCost)} bill. The ${tk(final)} bought a clear answer about the real scope, not a shipped capability.`}</p>
+              <p className="small"><span className="muted">{decided === 'planned-only' ? <>Simulated PR #{hero.prNumber} · new task {split ? <TaskLink id={split.id} /> : null}</> : 'No PR. Partial changes reverted.'}</span> · <button className="link" onClick={onOpenLeader}>Now visible to your leader →</button></p>
+            </section>
+          )}
+
+          <section className="cc-sec">
+            <button className="eng-hood-toggle" onClick={() => setOpen((v) => !v)}><span>Under the hood</span><span className="accent-text">{open ? 'Hide' : 'Show'}</span></button>
+            {open && (
+              <div className="cc-hood small">
+                <p><b>Where the quote came from.</b> The estimator looked at {est.poolSize} past {hero.type === 'migration' ? 'infrastructure migrations' : 'tasks'} of similar size. It assumed {P.plannedUnits} services because the ticket listed {P.plannedUnits}. The leader and CFO views convert tokens to dollars at a synthetic $6 per million.</p>
+                <p><b>Why the first two stops were automatic.</b> The detector reads the session log. A repeat with nothing changed in between is waste, so it is fixed without asking. A repeat after a real edit is left alone.</p>
+                <p><b>Why the third stop asked you.</b> Spend crossed the ceiling and the remaining work was a different size than planned. That is a scope decision with a real cost, so a person makes it.</p>
+              </div>
+            )}
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

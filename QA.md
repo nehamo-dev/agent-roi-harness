@@ -16,7 +16,7 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 ## B. Engineer view (terminal mock)
 | # | Check | Result | Evidence |
 |---|---|---|---|
-| B1 | Panel is clearly labeled "simulated session" | PASS | Terminal bar reads "agent session · simulated"; task card says "(full ticket and design doc, simulated)". |
+| B1 | Panel is clearly labeled "simulated session" | PASS | App-style window: title bar reads "simulated session · synthetic data"; input box reads "Replay only · this session is simulated". |
 | B2 | Play, Step, and Reset all work; Reset fully restores the starting state | PASS | Rebuilt view: main button cycles "Approve 9.82M tokens and start" → "Stop and reset" → "Replay"; Step advances one step; Reset demo restores "0 tokens / ceiling 9.82M · services 0 of 6 · not started". |
 | B3 | Quote shows a cost range per item (services, security and performance exploration, coding) plus the main risk | N/A (changed) | Replaced by the T-149 reference design: one quote band 7.55M – 9.82M tokens (high ≤ 1.3x low) for 6 services, "What the design is", out of scope, main risk. |
 | B4 | Normal work auto-approves under the dollar threshold, with a visible line saying so | PASS | Quote box: "Above your 3.33M-token auto-approve limit, so you approve it first" (limit now $20 = 3.33M tokens). |
