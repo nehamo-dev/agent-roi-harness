@@ -61,7 +61,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
 
   return (
     <div className="cfo">
-      <div className="cfo-top">
+      <div className="cfo-top" data-tour="cfo-top">
         <div>
           <h2 className="cfo-title">{quarter === 'Q4' ? 'AI spend, Q4 2026 so far' : 'AI spend, Q3 2026 · Engineering'}</h2>
           <p className="cfo-subtitle">{quarter === 'Q4'
@@ -70,14 +70,14 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
         </div>
         <div className="quarter-switch">
           <button className={quarter === 'Q3' ? 'active' : ''} onClick={() => setQuarter('Q3')}>Q3 2026 · Closed</button>
-          <button className={quarter === 'Q4' ? 'active' : ''} onClick={() => setQuarter('Q4')}>Q4 2026 · Current</button>
+          <button className={quarter === 'Q4' ? 'active' : ''} onClick={() => setQuarter('Q4')} data-tour="cfo-q4">Q4 2026 · Current</button>
         </div>
       </div>
 
       {quarter === 'Q4' ? (
         <>
-          <div className="dept-tabs">{q4.depts.map((d) => (
-            <button key={d.name} className={d.name === dept.name ? 'dept active' : 'dept'} onClick={() => setDeptName(d.name)}>
+          <div className="dept-tabs" data-tour="cfo-depts">{q4.depts.map((d) => (
+            <button key={d.name} className={d.name === dept.name ? 'dept active' : 'dept'} onClick={() => setDeptName(d.name)} data-tour={`cfo-dept-${d.name}`}>
               <span className={`dot ${d.status}`} /><b>{d.name}</b><span className="dept-figs">{money(d.soFar)} so far · Forecast {moneyRange(d.low, d.high)}</span>
             </button>
           ))}</div>
@@ -85,7 +85,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
 
           <section className="q4-card">
             <p className="muted">Actual spend through {asOf}, shown beside the forecast for the full quarter. The forecast uses recent weeks and known commitments.</p>
-            <div className="q4-boxes">
+            <div className="q4-boxes" data-tour="cfo-figures">
               <div className="q4-box">
                 <div className="cfo-label">Actual so far</div>
                 <div className="cfo-big">{money(dept.soFar)}</div>
@@ -103,7 +103,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
               </div>
             </div>
             <h4 className="by-team-h">By team</h4>
-            <div className="by-team">{dept.teams.map((t) => (
+            <div className="by-team" data-tour="cfo-teams">{dept.teams.map((t) => (
               <div key={t.team} className="team-line">
                 <b>{t.team}</b>
                 <div>{money(t.soFar)} so far<div className="cfo-sub">Forecast {moneyRange(t.low, t.high)}</div></div>
@@ -170,7 +170,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
       </>
       )}
 
-      <div className="cfo-foot">
+      <div className="cfo-foot" data-tour="cfo-foot">
         <p><b>Cost per outcome, not value.</b> These figures show what work cost against what was approved. They do not measure the business value of what was built.</p>
         <div className="cfo-links">
           <button className="link" onClick={() => setSheet('all')}>See cost per capability</button>
@@ -188,7 +188,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
                 <h3>{hero.capability}</h3>
                 <p>Your run was one of {heroRow.runs.toLocaleString('en-US')} runs, {money(heroRow.spent)} total, against a budget of {money(heroRow.budget)}.</p>
                 {state.pausedDecision ? (
-                  <p>The engineer’s receipt: {money(hero.actualCost)} against a ceiling of {money(hero.quote.high)}, after “{state.pausedDecision.label}” ({state.decidedBy === 'engineer' ? `decided by ${hero.developer}` : 'decided by their leader'}), simulated PR #{hero.prNumber}. That {money(hero.actualCost)} is inside the {money(heroRow.spent)} above.</p>
+                  <p>The engineer’s receipt: {money(hero.actualCost)} against a ceiling of {money(hero.quote.high)}, after “{state.pausedDecision.label}” ({state.decidedBy === 'engineer' ? `decided by ${hero.developer}` : 'decided by the VP of Engineering'}), simulated PR #{hero.prNumber}. That {money(hero.actualCost)} is inside the {money(heroRow.spent)} above.</p>
                 ) : hero.status === 'paused' ? (
                   <p>The run is paused at {money(hero.actualCost)} waiting for a decision, so it has no receipt yet.</p>
                 ) : <p>The engineer’s run has not been played yet, so its cost is not in this total.</p>}

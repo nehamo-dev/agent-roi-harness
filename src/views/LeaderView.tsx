@@ -29,9 +29,9 @@ export function LeaderView() {
   return (
     <>
       <section className="card">
-        <h3>Engineering leader: AI coding budget, Q3 2026 <span className="pill warn">synthetic data</span></h3>
+        <h3>VP Engineering: AI coding budget, Q3 2026 <span className="pill warn">synthetic data</span></h3>
         <p className="muted">Across the org (modeled), at ${USD_PER_MILLION_TOKENS} per million tokens. Control figures from {sc.runs} sampled runs.</p>
-        <div className="tiles">
+        <div className="tiles" data-tour="vp-tiles">
           <div className="tile"><div className="tile-v">{light(spendTD.spent <= spendTD.planned)}{money(spendTD.spent)} <span className="tile-of">of {money(spendTD.planned)}</span></div><div className="tile-l">Spend, Q4 to date, actual vs planned · {tok(spendTD.spent)} · {Math.round((spendTD.spent / spendTD.planned) * 100)}% of plan</div></div>
           <div className="tile"><div className="tile-v">{light(sc.controlByTask >= 0.5)}{pct(sc.controlByTask)}</div><div className="tile-l">Control by task: runs started under an approved quote</div></div>
           <div className="tile"><div className="tile-v">{light(ILLUSTRATIVE.controlByDollars >= 0.5)}{pct(ILLUSTRATIVE.controlByDollars)}</div><div className="tile-l">Control by dollars: spend that ran inside an approved quote</div></div>
@@ -68,7 +68,7 @@ export function LeaderView() {
       </section>
 
       {paused.status !== 'running' && (
-      <section className="card">
+      <section className="card" data-tour="vp-decision">
         <h3>Needs a decision: <TaskLink id={paused.id} />, {paused.capability}</h3>
         <p className="muted">{paused.team} · {paused.developer} · {paused.type} {paused.size} in {paused.repoArea} · quote {usd(paused.quote.low)} – {usd(paused.quote.high)}</p>
         {state.pausedDecision ? (
@@ -80,7 +80,7 @@ export function LeaderView() {
             <p><b>Why it stopped:</b> {PAUSED_SCENARIO.why} Spent {usd(paused.actualCost)} ({tok(paused.actualCost)}) against a ceiling of {usd(paused.quote.high)} ({tok(paused.quote.high)}).</p>
             <p><b>What changed:</b> {PAUSED_SCENARIO.changed} {PAUSED_SCENARIO.doneUnits} of {PAUSED_SCENARIO.discoveredUnits} {PAUSED_SCENARIO.unitLabel} done, at about {usd(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)} ({tok(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)}) each. {paused.developer} asked to do all {PAUSED_SCENARIO.discoveredUnits}, which is above their approval limit.</p>
             <div className="options">{options.map((o) => (
-              <button key={o.key} className="option" onClick={() => dispatch({ kind: 'resolvePaused', option: o, by: 'leader' })}>
+              <button key={o.key} className="option" data-tour={`vp-opt-${o.key}`} onClick={() => dispatch({ kind: 'resolvePaused', option: o, by: 'leader' })}>
                 <b>{o.label}</b><span className="opt-cost">+{usd(o.addedCost)} → total {usd(o.finalCost)}</span><span className="muted">+{tok(o.addedCost)} → total {tok(o.finalCost)}</span><span className="muted">{o.detail}</span>
               </button>
             ))}</div>
@@ -89,7 +89,7 @@ export function LeaderView() {
       </section>
       )}
 
-      <section className="card">
+      <section className="card" data-tour="vp-offplan">
         <h3>Off-plan runs only ({offPlan.length} of {sc.runs})</h3>
         <p className="muted">Runs more than {usd(OFF_PLAN_MIN_OVER)} over their quote ceiling, paused, or stopped. Everything else ran inside plan.</p>
         <table>
