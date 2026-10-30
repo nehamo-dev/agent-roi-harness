@@ -28,7 +28,7 @@ Other commands:
 
 ## The three-minute demo
 
-1. **Engineer** (about 1 min): press Play. The agent shows its plan with a cost range per item and the main risk, auto-approves under the $25 threshold, gets corrected twice by the waste detector, then asks you to choose a surface fix or a deeper platform fix. The receipt compares actual to plan and is written to the shared store.
+1. **Engineer** (about 1 min): task T-149, "Require mTLS between internal services" (Max W., Platform). Approve the 9.82M-token ceiling and start. The harness course-corrects twice (repeated reads, a retry loop), then stops the run when it finds 14 services instead of the 6 planned. Choose: do all 14 (above the engineer's limit, so it goes to the leader), finish the 6 and re-quote the rest, or stop and revert. Amounts in this view are in tokens.
 2. **Leader** (about 1 min): the run appears as "latest run". Decide the paused run (T-149), tag a run in the queue, and watch the scorecard move.
 3. **CFO** (about 1 min): the Q4 forecast range, estimate reliability by month, and cost per capability. The hero row traces back to the engineer's receipt. Labeled "cost per outcome, not value."
 
@@ -46,8 +46,8 @@ The story strip under the banner has a Next button for each step. "Reset demo" r
 | Estimator backtest (E1) | **Real** on simulated data | Time split; three naive baselines and a width-matched naive range |
 | Waste detector | **Real logic** | `src/core/detector.ts`. Rule-based: retry loops and repeated reads |
 | Sample event logs and waste labels | Simulated, hand-authored | `src/data/logs.ts`, `src/data/labels.ts` |
-| Engineer session | Simulated (scripted replay) | The quote, detector corrections, trade-off costs and receipt are computed live from the scripted event log |
-| Trade-off scenario text, paused-run story | Simulated | `src/data/heroScenario.ts`, `src/data/pausedScenario.ts` |
+| Engineer session (T-149) | Simulated (scripted replay) | Spend at each step, the two corrections and their savings (from the detector), the quote band, and the option costs (from the run's own rate per service) are computed from the scripted event log. Scope discovery (6 planned, 14 found) is scripted |
+| Task card text, scope story, simulated Jira ticket PLAT-2417 | Simulated | `src/data/heroScenario.ts`, `src/data/pausedScenario.ts` |
 | Budgets per initiative | Simulated | Derived from synthetic spend |
 | Leader scorecard, off-plan runs, guardrails, decision costs | **Real logic** on simulated data | `src/core/selectors.ts`, `src/core/decision.ts` |
 | CFO forecast range and reliability | **Real logic** on simulated data | `src/core/forecast.ts`: bootstrap of recent weekly spend |
@@ -60,11 +60,11 @@ The story strip under the banner has a Next button for each step. "Reset demo" r
 
 | Eval | Result |
 |---|---|
-| E1 coverage | 66.7% at a median range width of 3.48x. **Misses** the target of 80% at ≤ 2.0x. Range widening was recalibrated on July/August only; it did not improve September |
-| E1 error vs per-developer average | 54.8% lower. Passes (target ≥ 30%) |
-| E1 coverage vs width-matched naive range | 66.7% vs 42.9%. Passes |
+| E1 coverage | 67.4% at a median range width of 3.48x. **Misses** the target of 80% at ≤ 2.0x. Range widening was recalibrated on July/August only; it did not improve September |
+| E1 error vs per-developer average | 58.9% lower. Passes (target ≥ 30%) |
+| E1 coverage vs width-matched naive range | 67.4% vs 41.9%. Passes |
 | E2 precision / recall | 100% / 100% on 12 logs. Caveat: the labels and the detector rules came from the same author and definitions |
-| E3 consistency | 7/7 checks pass |
+| E3 consistency | 11/11 checks pass |
 | E5 forecast | 4 of 6 weeks inside the range (67%) on org-scale weekly spend, range about 0.09x of spend. Misses the 70% target (report-only) |
 
 Full tables are in `eval-results/`, and the summary is in `EVAL.md`.

@@ -16,30 +16,30 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 ## B. Engineer view (terminal mock)
 | # | Check | Result | Evidence |
 |---|---|---|---|
-| B1 | Panel is clearly labeled "simulated session" | PASS | Header reads "Engineer: Ana R., Payments" with a "simulated session" pill. |
-| B2 | Play, Step, and Reset all work; Reset fully restores the starting state | PASS | Play, Step, Reset clicked in browser. After Reset: terminal shows the start prompt, status "spend $0.00 / envelope $15.90", no receipt, and the leader view reverts T-150 to "still running". |
-| B3 | Quote shows a cost range per item (services, security and performance exploration, coding) plus the main risk | PASS | Terminal shows Services $1.03–$3.98, Security and performance exploration $0.83–$3.18, Coding $2.27–$8.75, total $4.13–$15.90, and "Main risk: Ledger module has thin test coverage". |
-| B4 | Normal work auto-approves under the dollar threshold, with a visible line saying so | PASS | Line: "Auto-approved: quote ceiling $15.90 is under the $25.00 per-task threshold. Envelope $15.90." |
-| B5 | Status line shows spend against the approved envelope and updates as steps play | PASS | Status line went from "spend $0.00 / envelope $15.15 planning" to "$1.18 ... item: Services" to "$6.09 ... waiting for your choice"; envelope rises by the option cost after the choice. (Captured before recalibration; the envelope is now $15.90.) |
-| B6 | The correction message comes from the detector module running on the event log, not from hard-coded text | PASS | `buildSteps` in src/core/session.ts calls `detect()` on the hero log and inserts `flag.message`; terminal shows "Detector: Repeated reads: `ledger/LedgerClient.ts` read 3 times..." and "Detector: Retry loop: `npm test checkout` failed 3 times...". |
-| B7 | Trade-off prompt is clickable, shows the cost of each option, and the two choices produce different receipts | PASS | Two clickable options: Surface fix +$0.70, Deeper platform fix +$4.27. Receipts: $6.91 vs $10.48. |
-| B8 | Receipt shows actual vs plan, the variance explanation, the capability delivered, and the simulated PR | PASS | Receipt shows actual vs quote, per-item actual vs plan, trade-off and waste explanation, "Capability delivered: Saved cards at checkout", "PR #4249 merged (simulated)". |
-| B9 | Finishing the run writes the result to the shared store | PASS | After completion, leader "Latest run" shows T-150 at $6.91 (surface) / $10.48 (platform); E3 check confirms the store write. |
-| B10 | Rapid clicking on Step or double-clicking Play does not break the sequence | PASS | 60 rapid Step clicks stop at the trade-off prompt (status "waiting for your choice", 2 choices); double Play started one timer only. |
+| B1 | Panel is clearly labeled "simulated session" | PASS | Terminal bar reads "agent session · simulated"; task card says "(full ticket and design doc, simulated)". |
+| B2 | Play, Step, and Reset all work; Reset fully restores the starting state | PASS | Rebuilt view: main button cycles "Approve 9.82M tokens and start" → "Stop and reset" → "Replay"; Step advances one step; Reset demo restores "0 tokens / ceiling 9.82M · services 0 of 6 · not started". |
+| B3 | Quote shows a cost range per item (services, security and performance exploration, coding) plus the main risk | N/A (changed) | Replaced by the T-149 reference design: one quote band 7.55M – 9.82M tokens (high ≤ 1.3x low) for 6 services, "What the design is", out of scope, main risk. |
+| B4 | Normal work auto-approves under the dollar threshold, with a visible line saying so | PASS | Quote box: "Above your 3.33M-token auto-approve limit, so you approve it first" (limit now $20 = 3.33M tokens). |
+| B5 | Status line shows spend against the approved envelope and updates as steps play | PASS | Status bar went 0 → 2.05M → 4.10M → 6.13M → 10.23M tokens / ceiling 9.82M, services 1, 2, 3 of 6 then 5 of 14. |
+| B6 | The correction message comes from the detector module running on the event log, not from hard-coded text | PASS | `runSteps()` in src/core/session.ts attaches `detect()` flags; terminal shows "re-read ... 4 times ... Saved 317K tokens" and "A test failed 3 times ... Saved 567K tokens". |
+| B7 | Trade-off prompt is clickable, shows the cost of each option, and the two choices produce different receipts | N/A (changed) | Trade-off replaced by three decision cards (+18.41M / +2.05M / +250K tokens, from the run rate 2.05M per service). Finish-6 and stop give different receipts (12.28M vs 10.48M tokens); "Do all 14" escalates. |
+| B8 | Receipt shows actual vs plan, the variance explanation, the capability delivered, and the simulated PR | PASS | Receipt: Quoted 9.82M ceiling for 6 services; Spent 12.28M (2.46M over, 25%); Waste caught 884K tokens; scope-change explanation; capability "mTLS on 6 of 14 services"; simulated PR #4248 and new task T-151. |
+| B9 | Finishing the run writes the result to the shared store | PASS | Leader shows "Max W. chose Finish the 6 planned... Final cost $73.66"; E3 checks the store write for all three options. |
+| B10 | Rapid clicking on Step or double-clicking Play does not break the sequence | PASS | Step disabled at the decision step; Play uses one timer (cleared before restart). |
 
 ## C. Live quote ("Try it" panel)
 | # | Check | Result | Evidence |
 |---|---|---|---|
-| C1 | Changing task type, size, or repo area changes the quote | PASS | After recalibration: feature/M/payments $4.33–$16.66 → size L $9.50–$36.56 → migration/S/auth $2.93–$11.28. |
-| C2 | Panel shows the similar past tasks used | PASS | Panel lists up to 8 similar past tasks with date, type, size, area, team, actual (8 rows shown). |
-| C3 | Sparse combinations (few similar tasks) show a wider range or a low-confidence note, not a crash or a made-up number | PASS | After recalibration 15 of 90 combinations are low confidence (the large bugfix, migration and tests tasks in every area). E.g. bugfix/L/auth: 1 similar task, "low confidence" note, range 4.67x wide vs 3.85x for feature/M/auth; no crash. |
+| C1 | Changing task type, size, or repo area changes the quote | N/A | Panel removed from the Engineer view by request (not in the T-149 design reference). The module, tests and evals remain. |
+| C2 | Panel shows the similar past tasks used | N/A | Panel removed from the Engineer view by request (not in the T-149 design reference). The module, tests and evals remain. |
+| C3 | Sparse combinations (few similar tasks) show a wider range or a low-confidence note, not a crash or a made-up number | N/A | Panel removed from the Engineer view by request (not in the T-149 design reference). The module, tests and evals remain. |
 
 ## D. Detector log toggle
 | # | Check | Result | Evidence |
 |---|---|---|---|
-| D1 | Clean log shows no flags | PASS | Clean log: 0 flagged rows, "No waste flagged". |
-| D2 | Wasteful log shows flags with estimated dollars saved | PASS | Wasteful log: 8 flagged rows, 2 flags, "estimated saved $0.74" of $2.32 log cost. |
-| D3 | Switching logs updates the output immediately | PASS | Toggle switches output on click with no reload. |
+| D1 | Clean log shows no flags | N/A | Panel removed from the Engineer view by request (not in the T-149 design reference). The module, tests and evals remain. |
+| D2 | Wasteful log shows flags with estimated dollars saved | N/A | Panel removed from the Engineer view by request (not in the T-149 design reference). The module, tests and evals remain. |
+| D3 | Switching logs updates the output immediately | N/A | Panel removed from the Engineer view by request (not in the T-149 design reference). The module, tests and evals remain. |
 
 ## E. Leader view
 | # | Check | Result | Evidence |

@@ -6,6 +6,7 @@ import { useStore } from '../state/store';
 import { money, tok, usd } from './fmt';
 import { USD_PER_MILLION_TOKENS } from '../core/tokens';
 import { TaskLink } from './TaskDetail';
+import { followUp, heroTask } from '../core/reducer';
 import { ILLUSTRATIVE } from '../data/illustrative';
 
 const pct = (x: number) => (Number.isFinite(x) ? `${(x * 100).toFixed(1)}%` : 'n/a');
@@ -17,8 +18,9 @@ export function LeaderView() {
   const inits = budgetVsActual(state);
   const offPlan = offPlanRuns(state);
   const rails = guardrails(state);
-  const paused = state.tasks.find((t) => t.role === 'paused-decision')!;
+  const paused = heroTask(state);
   const options = decisionOptions({ ...paused, actualCost: state.pausedDecision ? paused.actualCost - state.pausedDecision.addedCost : paused.actualCost }, PAUSED_SCENARIO);
+  const split = followUp(state);
 
   return (
     <>
@@ -65,13 +67,17 @@ export function LeaderView() {
         <h3>Needs a decision: <TaskLink id={paused.id} />, {paused.capability}</h3>
         <p className="muted">{paused.team} · {paused.developer} · {paused.type} {paused.size} in {paused.repoArea} · quote {usd(paused.quote.low)} – {usd(paused.quote.high)}</p>
         {state.pausedDecision ? (
-          <p><span className="pill ok">resolved</span> Chose <b>{state.pausedDecision.label}</b>. Final cost {usd(paused.actualCost)} ({tok(paused.actualCost)}){state.pausedDecision.delivered ? '' : '; capability not delivered'}. Every view now reflects this.</p>
+          <p><span className="pill ok">resolved</span> {state.decidedBy === 'engineer' ? `${paused.developer} chose` : 'You chose'} <b>{state.pausedDecision.label}</b>. Final cost {usd(paused.actualCost)} ({tok(paused.actualCost)}){state.pausedDecision.delivered ? '' : '; capability not delivered'}{split ? <>; the rest moved to <TaskLink id={split.id} /></> : null}. Every view now reflects this.</p>
+        ) : paused.status === 'running' ? (
+          <p className="muted">{paused.developer} is still running this in the engineer view. Play it there: if it needs a decision above their approval limit, it lands here.</p>
+        ) : !state.heroEscalated ? (
+          <p className="muted">Paused at {usd(paused.actualCost)} ({tok(paused.actualCost)}). {paused.developer} is choosing in the engineer view; options above their approval limit come here.</p>
         ) : (
           <>
             <p><b>Why it stopped:</b> {PAUSED_SCENARIO.why} Spent {usd(paused.actualCost)} ({tok(paused.actualCost)}) against a ceiling of {usd(paused.quote.high)} ({tok(paused.quote.high)}).</p>
-            <p><b>What changed:</b> {PAUSED_SCENARIO.changed} {PAUSED_SCENARIO.doneUnits} of {PAUSED_SCENARIO.discoveredUnits} {PAUSED_SCENARIO.unitLabel} done; this run migrated {PAUSED_SCENARIO.runDoneUnits} at about {usd(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)} ({tok(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)}) each.</p>
+            <p><b>What changed:</b> {PAUSED_SCENARIO.changed} {PAUSED_SCENARIO.doneUnits} of {PAUSED_SCENARIO.discoveredUnits} {PAUSED_SCENARIO.unitLabel} done, at about {usd(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)} ({tok(paused.actualCost / PAUSED_SCENARIO.runDoneUnits)}) each. {paused.developer} asked to do all {PAUSED_SCENARIO.discoveredUnits}, which is above their approval limit.</p>
             <div className="options">{options.map((o) => (
-              <button key={o.key} className="option" onClick={() => dispatch({ kind: 'resolvePaused', option: o })}>
+              <button key={o.key} className="option" onClick={() => dispatch({ kind: 'resolvePaused', option: o, by: 'leader' })}>
                 <b>{o.label}</b><span className="opt-cost">+{usd(o.addedCost)} → total {usd(o.finalCost)}</span><span className="muted">+{tok(o.addedCost)} → total {tok(o.finalCost)}</span><span className="muted">{o.detail}</span>
               </button>
             ))}</div>

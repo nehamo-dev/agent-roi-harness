@@ -122,17 +122,17 @@ export function generate(seed = SEED, count = 148): GeneratedData {
     if (i < tagCutoff) t.justified = (rng() < (t.actualCost > 100 ? 0.4 : 0.82) ? 'yes' : 'no') as Justified;
   });
 
-  // The paused run for the leader decision screen.
+  // The hero run T-149: plays live in the engineer view; its cost is written as the run progresses.
   raw.push({
     team: 'Platform', developer: 'Max W.', initiative: 'Service mesh', capability: 'mTLS between services',
-    type: 'migration', size: 'L', repoArea: 'platform', quote: { low: 0, high: 0 }, actualCost: 160,
-    eventLogId: null, status: 'paused', justified: 'unset', date: '2026-09-29', role: 'paused-decision',
+    type: 'migration', size: 'L', repoArea: 'platform', quote: { low: 0, high: 0 }, actualCost: 0,
+    eventLogId: 'hero', status: 'running', justified: 'unset', date: '2026-09-29', role: 'hero',
   });
-  // The hero task: runs live in the engineer view; cost is written when the run completes.
+  // An ordinary recent task (formerly the scripted checkout run).
   raw.push({
     team: 'Payments', developer: 'Ana R.', initiative: 'Checkout reliability', capability: 'Saved cards at checkout',
-    type: 'feature', size: 'M', repoArea: 'payments', quote: { low: 0, high: 0 }, actualCost: 0,
-    eventLogId: 'hero', status: 'running', justified: 'unset', date: '2026-09-30', role: 'hero',
+    type: 'feature', size: 'M', repoArea: 'payments', quote: { low: 0, high: 0 }, actualCost: 10.48,
+    eventLogId: null, status: 'completed', justified: 'unset', date: '2026-09-30',
   });
 
   const tasks: Task[] = raw.map((t, i) => ({

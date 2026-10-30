@@ -29,8 +29,9 @@ export interface Task {
   justified: Justified;
   prNumber: number;
   date: string; // YYYY-MM-DD
-  role?: 'hero' | 'paused-decision';
-  delivered?: boolean; // false when a run was stopped without shipping its capability
+  role?: 'hero';
+  delivered?: boolean;
+  splitFrom?: string; // task this one was split from (remaining scope re-quoted) // false when a run was stopped without shipping its capability
 }
 
 export interface OwnerNote {

@@ -10,7 +10,7 @@ type Tab = (typeof TABS)[number];
 
 // One story, three views. About a minute each.
 const STORY: Record<Tab, string> = {
-  Engineer: 'Press Play. The agent quotes the task from similar past work, auto-approves, gets corrected by the waste detector, asks you to pick a trade-off, and ends with a receipt that lands in the shared store.',
+  Engineer: 'Press the blue button. The agent works on a real-sized job, the harness catches waste, then stops it when the plan turns out to be wrong.',
   Leader: 'The same run now shows up in the budget. Only off-plan runs are surfaced. Decide the paused run and watch the totals and the CFO view move.',
   CFO: 'The same runs now roll up to company spend. Only overspend is called out, by team, in plain language.',
 };
@@ -37,7 +37,7 @@ export function App() {
       {/* Views stay mounted so the engineer run survives tab switches. */}
       <TaskDetailHost>
       <main key={runKey}>
-        <div hidden={tab !== 'Engineer'}><EngineerView /></div>
+        <div hidden={tab !== 'Engineer'}><EngineerView onOpenLeader={() => setTab('Leader')} /></div>
         <div hidden={tab !== 'Leader'}><LeaderView /></div>
         <div hidden={tab !== 'CFO'}><CfoView onOpenEngineer={() => setTab('Engineer')} /></div>
       </main>

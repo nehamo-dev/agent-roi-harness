@@ -15,28 +15,24 @@ export function stamp(events: E[], startSec = 0): LogEvent[] {
 }
 const log = (id: string, title: string, events: E[]): EventLog => ({ id, title, events: stamp(events) });
 
-// Hero session: the base run up to the trade-off point. Segments index into this list.
-export const HERO_BASE: E[] = [
-  // services (0-4)
-  r('services/cards/CardVault.ts'), r('services/cards/types.ts', 0.05), r('api/checkout/routes.ts', 0.07),
-  e('services/cards/CardVault.ts', 0.55), e('api/checkout/routes.ts', 0.45),
-  // security and performance exploration (5-9)
-  r('docs/security/card-vault.md', 0.08), r('services/cards/CardVault.ts'), c('npm run audit:pci', 0, 0.35),
-  t('npm run bench checkout', 0, 0.42), e('services/cards/CardVault.ts', 0.6),
-  // coding (10-20)
-  e('web/checkout/SavedCards.tsx', 0.7), e('web/checkout/CheckoutForm.tsx', 0.55),
-  t('npm test checkout', 1), r('ledger/LedgerClient.ts', 0.07), t('npm test checkout', 1),
-  r('ledger/LedgerClient.ts', 0.07), r('ledger/LedgerClient.ts', 0.07), t('npm test checkout', 1),
-  e('tests/ledger/LedgerClient.test.ts', 0.45), e('web/checkout/SavedCards.tsx', 0.35), t('npm test checkout', 0, 0.3),
+// Hero session T-149 (mTLS between services). Step boundaries live in heroScenario.ts.
+export const HERO_LOG: E[] = [
+  // Started: auth-service (0-5)
+  r('services/auth/tls.go', 0.9), r('lib/client/transport.go', 1.1), e('lib/client/transport.go', 3.2),
+  e('services/auth/main.go', 2.6), t('npm test auth-unit', 0, 2.0), c('deploy --flag mtls auth-service', 0, 2.5),
+  // billing-service, with repeated reads of the certificate config (6-12)
+  r('certs/config.yaml', 0.634), e('services/billing/tls.go', 4.2), r('certs/config.yaml', 0.634),
+  e('services/billing/main.go', 3.1), r('certs/config.yaml', 0.634), r('certs/config.yaml', 0.634),
+  t('npm test billing-unit', 0, 2.464),
+  // orders-service, with a retry loop on the integration test (13-19)
+  e('services/orders/tls.go', 3.0), t('npm test auth-integration', 1, 1.7), t('npm test auth-integration', 1, 1.7),
+  t('npm test auth-integration', 1, 1.7), r('test/fixtures/certs.pem', 0.6), e('test/fixtures/certs.pem', 1.5),
+  t('npm test auth-integration', 0, 1.98),
+  // search and payments, then scope discovery (20-28)
+  e('services/search/tls.go', 3.6), e('services/search/main.go', 3.0), t('npm test search', 0, 2.4),
+  e('services/payments/tls.go', 3.4), t('npm test payments', 0, 2.2), r('deploy/sidecar/rotation.yaml', 1.0),
+  c('scan-services --needs-mtls', 0, 3.0), r('infra/service-inventory.yaml', 1.0), e('services/payments/main.go', 5.0),
 ];
-export const HERO_OPTIONS: Record<'surface' | 'platform', E[]> = {
-  surface: [e('web/checkout/SavedCards.tsx', 0.4), t('npm test checkout', 0, 0.3)],
-  platform: [
-    e('ledger/LedgerClient.ts', 1.4), e('ledger/idempotency.ts', 1.1), e('tests/ledger/LedgerClient.test.ts', 0.6),
-    t('npm test ledger', 0, 0.45), t('npm test checkout', 0, 0.3), t('npm run bench checkout', 0, 0.42),
-  ],
-};
-export const HERO_FINISH: E[] = [c('gh pr create --fill', 0, 0.12)];
 
 export const SAMPLE_LOGS: EventLog[] = [
   log('clean-1', 'Clean: small bugfix', [
@@ -86,5 +82,5 @@ export const SAMPLE_LOGS: EventLog[] = [
     r('ui/theme.ts'), c('npm run lint', 1, 0.15), r('ui/theme.ts'), r('ui/theme.ts'), e('ui/Button.tsx'),
     c('npm run lint', 0, 0.15),
   ]),
-  log('hero', 'Hero session (Saved cards at checkout), before trade-off', HERO_BASE),
+  log('hero', 'Hero session (mTLS between services)', HERO_LOG),
 ];

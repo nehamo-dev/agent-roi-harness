@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useReducer, type Dispatch, type Rea
 import { reducer, type Action, type DemoState } from '../core/reducer';
 import { buildDataset } from '../data/dataset';
 
-export const initial: DemoState = { ...buildDataset(), heroReceipt: null, pausedDecision: null };
+export const initial: DemoState = { ...buildDataset(), pausedDecision: null, decidedBy: null, heroEscalated: false };
 
 const Ctx = createContext<{ state: DemoState; dispatch: Dispatch<Action>; reset: () => void } | null>(null);
 

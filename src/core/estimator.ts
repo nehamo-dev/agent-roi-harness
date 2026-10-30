@@ -14,6 +14,7 @@ export interface Estimate {
   assumptions: string[];
   risks: string[];
   areaRisk: string;
+  poolSize: number; // past tasks the quote was drawn from
 }
 
 const MIN_POOL = 5;
@@ -79,7 +80,7 @@ export function estimate(f: TaskFeatures, pastTasks: Task[], cal: Calibration = 
     return {
       quote: COLD_START, midpoint: Math.sqrt(COLD_START.low * COLD_START.high), confidence: 'low', level: 'none',
       exactMatches: 0, similar: [], assumptions: ['Cold start: fewer than 5 completed tasks in history; using a broad default range.'],
-      risks: ['No history to compare against.'], areaRisk: AREA_RISK[f.repoArea],
+      risks: ['No history to compare against.'], areaRisk: AREA_RISK[f.repoArea], poolSize: 0,
     };
   }
   const model = fitModel(history);
@@ -121,7 +122,7 @@ export function estimate(f: TaskFeatures, pastTasks: Task[], cal: Calibration = 
   if (f.size === 'L') risks.push('Large scope: the plan may need to split mid-run.');
   if (lowConf) risks.push(`Only ${typeSize} past ${typeSize === 1 ? 'task' : 'tasks'} of this type and size; range widened and confidence is low.`);
 
-  return { quote: { low, high }, midpoint, confidence: lowConf ? 'low' : 'normal', level, exactMatches: exact.length, similar, assumptions, risks, areaRisk: AREA_RISK[f.repoArea] };
+  return { quote: { low, high }, midpoint, confidence: lowConf ? 'low' : 'normal', level, exactMatches: exact.length, similar, assumptions, risks, areaRisk: AREA_RISK[f.repoArea], poolSize: pool.length };
 }
 
 export function width(q: Quote): number {

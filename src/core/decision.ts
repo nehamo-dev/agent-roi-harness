@@ -28,14 +28,17 @@ export function decisionOptions(task: Task, ctx: PausedContext): DecisionOption[
     key, label, detail, addedCost, finalCost: task.actualCost + addedCost, delivered,
   });
   return [
-    mk('continue', `Approve all ${ctx.discoveredUnits} ${ctx.unitLabel}`,
-      `Finish the full scope now at the observed run-rate ($${rate.toFixed(2)} per ${ctx.unitLabel.replace(/s$/, '')}).`,
+    mk('continue', `Do all ${ctx.discoveredUnits} ${ctx.unitLabel}`,
+      'Finish the whole job at the rate seen so far.',
       rate * (ctx.discoveredUnits - ctx.doneUnits), true),
-    mk('planned-only', `Finish the planned ${ctx.plannedUnits}, re-quote the rest`,
-      `Ship the original scope; the other ${ctx.discoveredUnits - ctx.plannedUnits} become a new task with its own quote.`,
+    mk('planned-only', `Finish the ${ctx.plannedUnits} planned, re-quote the rest`,
+      `Ship the original scope. The other ${ctx.discoveredUnits - ctx.plannedUnits} become a new task with its own quote.`,
       rate * (ctx.plannedUnits - ctx.doneUnits), true),
     mk('stop', 'Stop and revert',
-      'Stop the run, revert partial changes. Capability not delivered this period.',
+      'Undo the partial changes. Nothing ships, and the capability is not delivered this period.',
       ctx.cleanupCost, false),
   ];
 }
+
+// Cost per unit the run has shown so far.
+export const runRate = (task: Task, ctx: PausedContext) => task.actualCost / ctx.runDoneUnits;

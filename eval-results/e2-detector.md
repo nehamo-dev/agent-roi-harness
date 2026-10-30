@@ -28,4 +28,4 @@ Logs: 12 (5 clean or tricky). Labeled spans: 10.
 | reads-2 | 1 | 1 | repeated-read [0-4] | $0.12 | $1.36 |
 | mixed-1 | 2 | 2 | repeated-read [1-8], retry-loop [3-7] | $0.74 | $2.32 |
 | mixed-2 | 2 | 2 | retry-loop [2-5], repeated-read [4-7] | $0.42 | $1.74 |
-| hero | 2 | 2 | repeated-read [13-16], retry-loop [12-17] | $0.70 | $6.09 |
+| hero | 2 | 2 | repeated-read [6-11], retry-loop [14-16] | $5.30 | $61.38 |

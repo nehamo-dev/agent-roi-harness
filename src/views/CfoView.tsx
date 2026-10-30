@@ -187,9 +187,11 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
               <>
                 <h3>{hero.capability}</h3>
                 <p>Your run was one of {heroRow.runs.toLocaleString('en-US')} runs, {money(heroRow.spent)} total, against a budget of {money(heroRow.budget)}.</p>
-                {state.heroReceipt ? (
-                  <p>The engineer’s receipt: {money(hero.actualCost)} against an approved {money(hero.quote.low)} – {money(hero.quote.high)}, {state.heroReceipt.choice === 'platform' ? 'with the deeper platform fix' : 'with the surface fix'}, merged as PR #{hero.prNumber} (simulated). That {money(hero.actualCost)} is inside the {money(heroRow.spent)} above.</p>
-                ) : <p>The engineer’s run is still in progress, so its cost is not in this total yet.</p>}
+                {state.pausedDecision ? (
+                  <p>The engineer’s receipt: {money(hero.actualCost)} against a ceiling of {money(hero.quote.high)}, after “{state.pausedDecision.label}” ({state.decidedBy === 'engineer' ? `decided by ${hero.developer}` : 'decided by their leader'}), simulated PR #{hero.prNumber}. That {money(hero.actualCost)} is inside the {money(heroRow.spent)} above.</p>
+                ) : hero.status === 'paused' ? (
+                  <p>The run is paused at {money(hero.actualCost)} waiting for a decision, so it has no receipt yet.</p>
+                ) : <p>The engineer’s run has not been played yet, so its cost is not in this total.</p>}
                 <button className="link" onClick={() => { setSheet(null); onOpenEngineer(); }}>Open the engineer view</button>
               </>
             ) : (

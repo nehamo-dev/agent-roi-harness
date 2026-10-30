@@ -1,16 +1,19 @@
 # E3 cross-view consistency
 
-> SYNTHETIC DATA. Replays UI actions through the shared reducer and the selectors every view renders from.
+> SYNTHETIC DATA. Replays UI actions (engineer plays T-149, then chooses; leader decides escalations) through the shared reducer and the selectors every view renders from.
 
 | Check | Status | Detail |
 |---|---|---|
-| Total spend identical in leader and CFO views (initial) | PASS | leader $2347851.95, CFO $2347851.95, CFO weekly chart $2347851.95, recomputed from store $2347851.95 |
-| Total spend identical in leader and CFO views (after hero run) | PASS | leader $2347862.43, CFO $2347862.43, CFO weekly chart $2347862.43, recomputed from store $2347862.43 |
-| Hero cost matches across receipt, leader row and CFO entry | PASS | receipt $10.48, leader task row $10.48, CFO capability total rises by $10.48 (hero counted inside its capability's 14937 runs) |
-| Paused-run decision updates leader view and CFO totals | PASS | T-149 needs decision -> needs review; leader and CFO totals both +$320.00; CFO owner's note and forecast range change ($2099896-$2284529 -> $2146473-$2191616) |
-| Tagging updates the scorecard | PASS | justified 87.0% -> 86.2%, coverage 73.0% -> 73.6% |
-| Different trade-off changes receipt and downstream numbers | PASS | surface receipt $6.91 vs platform $10.48; CFO row $192031.74 vs $192035.31 |
-| Q4 view agrees with Q3 and the paused decision | PASS | Engineering "Q3 actual" $2347851.95 = leader total; all-department so far $1069849 = sum of departments; Platform Q4 forecast high $452009 -> $359096 after the decision |
-| No NaN, negative or empty values (variances excepted) | PASS | scorecard, budgets, off-plan, capabilities, reliability, guardrails, forecast all clean |
+| Total spend identical in leader and CFO views (initial) | PASS | leader $2347702.43, CFO $2347702.43, CFO weekly chart $2347702.43, recomputed $2347702.43 |
+| Total spend identical in leader and CFO views (hero paused) | PASS | leader $2347763.81, CFO $2347763.81, CFO weekly chart $2347763.81, recomputed $2347763.81 |
+| Total spend identical in leader and CFO views (engineer finished 6) | PASS | leader $2347776.09, CFO $2347776.09, CFO weekly chart $2347776.09, recomputed $2347776.09 |
+| Total spend identical in leader and CFO views (leader approved all) | PASS | leader $2347874.29, CFO $2347874.29, CFO weekly chart $2347874.29, recomputed $2347874.29 |
+| Hero quote: ceiling is the top, high no more than 1.3x low | PASS | T-149 quote $45.31-$58.90 (1.30x) |
+| Hero cost matches across engineer receipt, leader row and CFO entry | PASS | paused at $61.38; receipt $73.66 = leader task $73.66; CFO capability rises by $73.66 |
+| "Do all 14" escalates; the leader decides it | PASS | continue +$110.48 > $20 limit; T-149 stays paused and shows "needs decision"; leader approval moves totals by +$110.48 |
+| Engineer choices change the receipt and downstream numbers | PASS | finish 6: $73.66 and new task T-151 quoted $75.54-$98.21; stop: $62.88, not delivered |
+| Tagging updates the scorecard | PASS | justified 87.0% -> 86.2%, coverage 72.5% -> 73.2% |
+| Decision reaches the CFO view (Q3 note, forecast, Q4 Platform) | PASS | Q3 forecast high $2479656 -> $2182241; Q4 Platform high $647115 -> $349700; Engineering "Q3 actual" = leader total |
+| No NaN, negative or empty values (variances excepted) | PASS | all view-level outputs clean across five states |
 
-Overall: PASS (8/8)
+Overall: PASS (11/11)

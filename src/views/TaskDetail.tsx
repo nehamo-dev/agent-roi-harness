@@ -15,9 +15,9 @@ export function TaskDetailHost({ children }: { children: ReactNode }) {
   );
 }
 
-export function TaskLink({ id }: { id: string }) {
+export function TaskLink({ id, children }: { id: string; children?: ReactNode }) {
   const open = useContext(Ctx);
-  return <button className="link" onClick={() => open(id)}>{id}</button>;
+  return <button className="link" onClick={() => open(id)}>{children ?? id}</button>;
 }
 
 function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
@@ -42,7 +42,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
       <div className="sheet task-sheet" onClick={(e) => e.stopPropagation()}>
         <button className="link sheet-close" onClick={onClose}>Close</button>
         <h3>{t.id} · {t.capability}</h3>
-        <p className="muted">Synthetic task from the seeded history{t.role === 'hero' ? '; this is the run played in the engineer view' : t.role === 'paused-decision' ? '; this is the paused run on the leader view' : ''}.</p>
+        <p className="muted">Synthetic task from the seeded history{t.role === 'hero' ? '; this is the run played in the engineer view' : t.splitFrom ? `; split from ${t.splitFrom} to cover the remaining scope` : ''}.</p>
         <dl>{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       </div>
     </div>

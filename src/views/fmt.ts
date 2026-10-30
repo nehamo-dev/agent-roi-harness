@@ -27,3 +27,10 @@ export function tok(usdAmount: number): string {
   const c = t >= 1e9 ? `${(t / 1e9).toFixed(t >= 1e10 ? 0 : 1)}B` : t >= 1e6 ? `${(t / 1e6).toFixed(t >= 1e7 ? 0 : 1)}M` : t >= 1e3 ? `${Math.round(t / 1e3)}K` : `${Math.round(t)}`;
   return `${c} tokens`;
 }
+
+// Token amounts for the engineer view, with two decimals in millions: 10.23M tokens, 317K tokens.
+export function tk(usdAmount: number): string {
+  const t = tokensFor(usdAmount);
+  const c = t >= 1e6 ? `${(t / 1e6).toFixed(2)}M` : t >= 1e3 ? `${Math.round(t / 1e3)}K` : `${Math.round(t)}`;
+  return `${c} tokens`;
+}

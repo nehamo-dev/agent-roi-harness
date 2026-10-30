@@ -48,7 +48,7 @@ export function offPlanRuns(s: DemoState): OffPlanRun[] {
   for (const t of s.tasks) {
     const overBy = t.actualCost - t.quote.high;
     if (t.status === 'paused') {
-      out.push({ task: t, overBy, state: 'needs decision', note: 'Paused by the harness at its envelope. Decision below.' });
+      out.push({ task: t, overBy, state: 'needs decision', note: s.heroEscalated ? 'Paused at its ceiling; the engineer escalated it. Decision below.' : 'Paused at its ceiling; the engineer is deciding.' });
     } else if (t.status === 'completed' && (overBy > OFF_PLAN_MIN_OVER || t.delivered === false)) {
       const ratio = t.actualCost / t.quote.high;
       const note = t.delivered === false ? 'Stopped and reverted; capability not delivered.'
@@ -168,7 +168,7 @@ export interface OrgWeek { start: string; spend: number; oneOff: number; paused:
 
 export function orgWeekly(s: DemoState): OrgWeek[] {
   const n = s.capabilities[0]?.weekly.length ?? 0;
-  const pausedCap = s.tasks.find((t) => t.role === 'paused-decision')?.capability;
+  const pausedCap = s.tasks.find((t) => t.role === 'hero')?.capability;
   const weeks: OrgWeek[] = Array.from({ length: n }, (_, i) => ({
     start: new Date(Date.parse(QUARTER_START + 'T00:00:00Z') + i * 7 * 86400000).toISOString().slice(0, 10), spend: 0, oneOff: 0, paused: 0,
   }));
@@ -190,7 +190,7 @@ export function orgWeekly(s: DemoState): OrgWeek[] {
 
 // Remaining work on the paused capability, priced at its own spend per unit so far.
 export function pausedScopeCost(s: DemoState) {
-  const paused = s.tasks.find((t) => t.role === 'paused-decision')!;
+  const paused = s.tasks.find((t) => t.role === 'hero')!;
   const row = capabilityRows(s).find((c) => c.capability === paused.capability)!;
   const ctx = PAUSED_SCENARIO;
   const perUnit = row.spent / ctx.doneUnits;
