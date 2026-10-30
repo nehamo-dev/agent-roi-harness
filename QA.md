@@ -97,7 +97,7 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 - Section F evidence above describes the earlier Q3-only page. The CFO tab now opens on Q4 2026 so far (all departments, department tabs with status, three figures, by-team notes) with Q3 2026 · Closed one click away. Verified in the browser: no "token" on the page, Q4 Engineering "Q3 actual" equals the leader total, the paused-run decision changes Platform's Q4 note and forecast. NEEDS HUMAN EYES for layout against the mockup.
 
 ## Illustrative figures (by request)
-- G4 exception: the leader's quote-accuracy tile shows 89% and the CFO's Engineering forecast accuracy shows 8 of 9 weeks (89%). Both come from `src/data/illustrative.ts`, not from the store. The computed values (66.7%, 67%) are unchanged in the evals, and README labels these two figures as illustrative.
+- G4 exception: the leader's spend tile shows Q4 to date $1.1M of $2.9M (computed Engineering Q4: $714K of $2.5M), the control-by-dollars tile shows 60%, the quote-accuracy tile shows 89% and the CFO's Engineering forecast accuracy shows 8 of 9 weeks (89%). On the CFO Q4 page, Engineering also shows $1.1M of a $2.9M plan (team rows scaled to match) and a green status dot; the computed status is "watch" while the mTLS question is open. All of these come from `src/data/illustrative.ts`, not from the store. The computed values (about 36%, 67.4%, 67%) are unchanged in the evals, and README labels these figures as illustrative.
 
 ## Known issues (Claude Code fills this in)
 Rank by how much each would hurt the demo, with a one-line suggested fix.

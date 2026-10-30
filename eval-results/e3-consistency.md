@@ -13,7 +13,7 @@
 | "Do all 14" escalates; the leader decides it | PASS | continue +$110.48 > $20 limit; T-149 stays paused and shows "needs decision"; leader approval moves totals by +$110.48 |
 | Engineer choices change the receipt and downstream numbers | PASS | finish 6: $73.66 and new task T-151 quoted $75.54-$98.21; stop: $62.88, not delivered |
 | Tagging updates the scorecard | PASS | justified 87.0% -> 86.2%, coverage 72.5% -> 73.2% |
-| Decision reaches the CFO view (Q3 note, forecast, Q4 Platform) | PASS | Q3 forecast high $2479656 -> $2182241; Q4 Platform high $647115 -> $349700; Engineering "Q3 actual" = leader total |
+| Decision reaches the CFO view (Q3 note, forecast, Q4 Platform) | PASS | Q3 forecast high $2479656 -> $2182241; Q4 Platform high $699716 -> $402300; Engineering "Q3 actual" = leader total |
 | No NaN, negative or empty values (variances excepted) | PASS | all view-level outputs clean across five states |
 
 Overall: PASS (11/11)

@@ -21,6 +21,8 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [selected, setSelected] = useState<DecisionKey | null>(null);
   const last = steps.length;
   const ceiling = hero.quote.high;
   const pausedCost = steps[last - 1].spentAfter;
@@ -51,7 +53,7 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   useEffect(() => { if (step >= last) stopTimer(); }, [step, last]);
   const advance = () => setStep((i) => Math.min(i + 1, last));
   const play = () => { stopTimer(); setPlaying(true); setTimeout(advance, 400); timer.current = setInterval(advance, TICK_MS); };
-  const reset = () => { stopTimer(); setStep(0); dispatch({ kind: 'resetHero', initial }); };
+  const reset = () => { stopTimer(); setStep(0); setSelected(null); setQuoteOpen(false); dispatch({ kind: 'resetHero', initial }); };
   const mainAction = () => (step === 0 && !playing ? play() : reset());
 
   const choose = (key: DecisionKey) => {
@@ -59,6 +61,12 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
     if (o.addedCost > AUTO_APPROVE_LIMIT) dispatch({ kind: 'escalate' });
     else dispatch({ kind: 'resolvePaused', option: o, by: 'engineer' });
   };
+
+  // A pending decision is drafted into the input bar: the cheapest option that still ships and is within the engineer's limit.
+  const pending = step >= last && !decided && !escalated && hero.status === 'paused';
+  const defaultChoice = options.filter((o) => o.delivered && o.addedCost <= AUTO_APPROVE_LIMIT).sort((a, b) => a.addedCost - b.addedCost)[0]?.key ?? null;
+  useEffect(() => { if (pending && selected === null) setSelected(defaultChoice); }, [pending, selected, defaultChoice]);
+  const selectedOption = options.find((o) => o.key === selected);
 
   // Status bar.
   const shown = steps.slice(0, step);
@@ -104,11 +112,21 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   const pct = Math.min(1, spent / Math.max(spent, ceiling));
   const caught = shown.flatMap((s) => s.flags);
 
+  const planList = (
+    <div className="cc-plan">
+      <div className="eyebrow">What the quote covers</div>
+      <ul>{S.design.map((d) => (
+        <li key={d.name}><span>{fill(d.name)}</span><span>{tk(hero.quote.low * d.share).replace(' tokens', '')} – {tk(ceiling * d.share).replace(' tokens', '')}</span></li>
+      ))}</ul>
+      <div className="cc-plan-total"><span>Total</span><span>{tk(hero.quote.low).replace(' tokens', '')} – {tk(ceiling)}</span></div>
+    </div>
+  );
+
   return (
     <div className="cc-window">
       <div className="cc-titlebar">
         <span className="cc-lights" aria-hidden="true"><i className="close" /><i className="min" /><i className="max" /></span>
-        <span className="cc-title">{S.ticket} · {S.title}</span>
+        <span className="cc-title"><b>Claude Desktop app</b> · {S.ticket} · {S.title}</span>
         <span className="cc-sim">simulated session · synthetic data</span>
       </div>
       <div className="cc-body">
@@ -150,54 +168,20 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
           </div>
           {step === 0 && !playing
             ? <div className="cc-input draft"><span>Approve {tk(ceiling)} and start</span><button className="btn-primary" onClick={play} aria-label="Send">↑</button></div>
-            : <div className="cc-input"><span>Replay only · this session is simulated</span><button disabled aria-label="Send">↑</button></div>}
+            : pending && selectedOption
+              ? <div className="cc-input draft"><span>{selectedOption.label} <span className="muted">· +{tk(selectedOption.addedCost)}{selectedOption.addedCost > AUTO_APPROVE_LIMIT ? ', goes to your leader' : ''}</span></span><button className="btn-primary" onClick={() => choose(selectedOption.key)} aria-label="Send decision">↑</button></div>
+              : <div className="cc-input"><span>Replay only · this session is simulated</span><button disabled aria-label="Send">↑</button></div>}
         </main>
 
         <aside className="cc-panel" aria-label="Economics">
           <div className="cc-panel-h"><span><b>Economics</b> <span className="cc-new">New</span></span><span className="muted small"><TaskLink id={hero.id} /> · tokens</span></div>
 
-          <section className="cc-sec">
-            <div className="eyebrow">Quote</div>
-            <div className="cc-big">{tk(hero.quote.low).replace(' tokens', '')} – {tk(ceiling)} <span className="cc-model">(on your approved model)</span></div>
-            <p className="small">The plan assumed <b>{P.plannedUnits} services</b>. The ceiling is {tk(ceiling)}. {ceiling > AUTO_APPROVE_LIMIT ? `Above your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so you approve it first.` : `Under your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so it starts on its own.`}</p>
-            <div className="cc-plan">
-              <div className="eyebrow">What the quote covers</div>
-              <ul>{S.design.map((d) => (
-                <li key={d.name}><span>{fill(d.name)}</span><span>{tk(hero.quote.low * d.share).replace(' tokens', '')} – {tk(ceiling * d.share).replace(' tokens', '')}</span></li>
-              ))}</ul>
-              <div className="cc-plan-total"><span>Total</span><span>{tk(hero.quote.low).replace(' tokens', '')} – {tk(ceiling)}</span></div>
-            </div>
-            <div className="cc-actions">
-              <button className="btn-primary" onClick={mainAction}>{step === 0 && !playing ? `Approve ${tk(ceiling)} and start` : playing ? 'Stop and reset' : 'Replay'}</button>
-              <button onClick={() => { stopTimer(); advance(); }} disabled={atDecision}>Step</button>
-            </div>
-          </section>
-
-          <section className="cc-sec">
-            <div className="eyebrow">Spend</div>
-            <div className="cc-meter-row"><b>{tk(spent)}</b><span className="muted small">of {tk(ceiling)} ceiling</span></div>
-            <div className="cc-meter"><div className={spent > ceiling ? 'over' : ''} style={{ width: `${pct * 100}%` }} />{spent > ceiling && <span className="cc-ceiling" style={{ left: `${(ceiling / spent) * 100}%` }} />}</div>
-            <div className="small">Services {doneText} · <span className={`st-${status[1]}`}>{status[0]}</span></div>
-          </section>
-
-          <section className="cc-sec">
-            <div className="eyebrow">Self-corrections</div>
-            {caught.length === 0 ? <p className="muted small">None yet. The harness steps in when the agent repeats work with nothing changed.</p> : (
-              <>
-                <ul className="cc-caught">{caught.map((f) => (
-                  <li key={f.subject}><span>{f.cls === 'repeated-read' ? `Re-read ${f.subject} ${f.count}x` : `Retried ${f.subject} ${f.count}x`}</span><span className="saved-v">{tk(f.dollarsSaved)}</span></li>
-                ))}</ul>
-                <div className="cc-caught-total small"><span>Saved so far</span><b className="saved-v">{tk(caught.reduce((a, f) => a + f.dollarsSaved, 0))}</b></div>
-              </>
-            )}
-          </section>
-
-          {atDecision && !decided && !escalated && hero.status === 'paused' && (
+          {pending && (
             <section className="cc-sec cc-decide">
               <div className="eyebrow">Needs a decision</div>
-              <p className="small">The job is bigger than quoted. Each choice shows what it costs from here, and who is allowed to make it.</p>
+              <p className="small">The job is bigger than quoted. Pick an option; it is drafted in the message box. Send to confirm.</p>
               {options.map((o) => (
-                <button key={o.key} className="cc-opt" onClick={() => choose(o.key)}>
+                <button key={o.key} className={`cc-opt${o.key === selected ? ' selected' : ''}`} onClick={() => setSelected(o.key)} aria-pressed={o.key === selected}>
                   <span className="cc-opt-top"><b>{o.label}</b><b>+{tk(o.addedCost)}</b></span>
                   <span className="muted small">total {tk(o.finalCost)} · {o.key === 'continue' ? `${tk(rate)} per service` : o.detail}</span>
                   {o.addedCost > AUTO_APPROVE_LIMIT
@@ -233,6 +217,51 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
               <p className="small"><span className="muted">{decided === 'planned-only' ? <>Simulated PR #{hero.prNumber} · new task {split ? <TaskLink id={split.id} /> : null}</> : 'No PR. Partial changes reverted.'}</span> · <button className="link" onClick={onOpenLeader}>Now visible to your leader →</button></p>
             </section>
           )}
+
+
+          {step === 0 ? (
+            <section className="cc-sec">
+              <div className="eyebrow">Quote</div>
+              <div className="cc-big">{tk(hero.quote.low).replace(' tokens', '')} – {tk(ceiling)} <span className="cc-model">(on your approved model)</span></div>
+              <p className="small">The plan assumed <b>{P.plannedUnits} services</b>. The ceiling is {tk(ceiling)}. {ceiling > AUTO_APPROVE_LIMIT ? `Above your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so you approve it first.` : `Under your ${tk(AUTO_APPROVE_LIMIT).replace(' tokens', '')}-token auto-approve limit, so it starts on its own.`}</p>
+              {planList}
+              <div className="cc-actions">
+                <button className="btn-primary" onClick={mainAction}>{playing ? 'Stop and reset' : `Approve ${tk(ceiling)} and start`}</button>
+                <button onClick={() => { stopTimer(); advance(); }}>Step</button>
+              </div>
+            </section>
+          ) : (
+            <section className="cc-sec cc-quote-mini">
+              <div className="cc-mini-row">
+                <span><span className="eyebrow">Quote</span> <b>{tk(hero.quote.low).replace(' tokens', '')} – {tk(ceiling)}</b> <span className="cc-model">(on your approved model)</span></span>
+                <button className="link" onClick={() => setQuoteOpen((v) => !v)}>{quoteOpen ? 'Hide' : 'Details'}</button>
+              </div>
+              {quoteOpen && planList}
+              <div className="cc-actions">
+                <button onClick={mainAction}>{playing ? 'Stop and reset' : 'Replay'}</button>
+                <button onClick={() => { stopTimer(); advance(); }} disabled={atDecision}>Step</button>
+              </div>
+            </section>
+          )}
+
+          <section className="cc-sec">
+            <div className="eyebrow">Spend</div>
+            <div className="cc-meter-row"><b>{tk(spent)}</b><span className="muted small">of {tk(ceiling)} ceiling</span></div>
+            <div className="cc-meter"><div className={spent > ceiling ? 'over' : ''} style={{ width: `${pct * 100}%` }} />{spent > ceiling && <span className="cc-ceiling" style={{ left: `${(ceiling / spent) * 100}%` }} />}</div>
+            <div className="small">Services {doneText} · <span className={`st-${status[1]}`}>{status[0]}</span></div>
+          </section>
+
+          <section className="cc-sec">
+            <div className="eyebrow">Self-corrections</div>
+            {caught.length === 0 ? <p className="muted small">None yet. The harness steps in when the agent repeats work with nothing changed.</p> : (
+              <>
+                <ul className="cc-caught">{caught.map((f) => (
+                  <li key={f.subject}><span>{f.cls === 'repeated-read' ? `Re-read ${f.subject} ${f.count}x` : `Retried ${f.subject} ${f.count}x`}</span><span className="saved-v">{tk(f.dollarsSaved)}</span></li>
+                ))}</ul>
+                <div className="cc-caught-total small"><span>Saved so far</span><b className="saved-v">{tk(caught.reduce((a, f) => a + f.dollarsSaved, 0))}</b></div>
+              </>
+            )}
+          </section>
 
           <section className="cc-sec">
             <button className="eng-hood-toggle" onClick={() => setOpen((v) => !v)}><span>Under the hood</span><span className="accent-text">{open ? 'Hide' : 'Show'}</span></button>

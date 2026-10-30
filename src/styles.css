@@ -194,7 +194,8 @@ hr.sep { border: none; border-top: 1px solid var(--line); margin: 18px 0 20px; }
 .cc-titlebar { display: flex; align-items: center; gap: 14px; height: 40px; padding: 0 14px; background: #F0F0EC; border-bottom: 1px solid #E2E2DD; font-size: 13px; }
 .cc-lights { display: inline-flex; gap: 8px; } .cc-lights i { width: 12px; height: 12px; border-radius: 50%; display: block; box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .18); }
 .cc-lights .close { background: #FF5F57; } .cc-lights .min { background: #FEBC2E; } .cc-lights .max { background: #28C840; }
-.cc-title { font-weight: 600; flex: 1; text-align: center; color: #3A3F4B; }
+.cc-title { font-weight: 500; flex: 1; text-align: center; color: #3A3F4B; }
+.cc-title b { font-weight: 700; }
 .cc-sim { color: var(--muted); font-size: 12px; }
 /* Fill the screen below the header so the input box stays above the fold on a laptop. */
 .cc-body { display: grid; grid-template-columns: 210px minmax(0, 1fr) 360px; height: clamp(440px, calc(100vh - 252px), 720px); }
@@ -262,3 +263,11 @@ hr.sep { border: none; border-top: 1px solid var(--line); margin: 18px 0 20px; }
 .cc-plan li span:last-child, .cc-plan-total span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-plan-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 5px; }
 .cc-model { font-size: 13px; font-weight: 400; color: var(--muted); white-space: nowrap; }
+.tile-of { font-size: 15px; font-weight: 500; color: var(--muted); }
+.cc-quote-mini { padding-top: 10px; padding-bottom: 10px; }
+.cc-mini-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13.5px; }
+.cc-quote-mini .cc-actions { margin-top: 8px; }
+.cc-opt.selected { border: 2px solid var(--accent); background: #F5F7FF; padding: 9px 11px; }
+.cc-decide { border-bottom: 2px solid var(--accent); }
+.light { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; vertical-align: 4px; }
+.light.green { background: var(--ok); box-shadow: 0 0 0 3px rgba(30, 123, 52, .15); } .light.red { background: var(--bad); box-shadow: 0 0 0 3px rgba(192, 57, 43, .15); }

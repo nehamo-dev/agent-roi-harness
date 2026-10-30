@@ -34,19 +34,26 @@ export function q4Summary(s: DemoState, money: (n: number) => string) {
   const p = pausedScopeCost(s);
 
   const depts = s.q4.departments.map((d: Department) => {
+    // Engineering's to-date spend and plan are set for the demo (same as the leader tile); teams scale to match.
+    const raw = sum(d.teams.map((t) => sum(t.q4Weekly)));
+    const target = d.engineering ? ILLUSTRATIVE.spendToDate : null;
+    const spendScale = target ? target.spent / raw : 1;
+    const budgetScale = target ? target.planned / d.budget : 1;
     const teams = d.teams.map((t) => {
-      const soFar = sum(t.q4Weekly);
+      const soFar = sum(t.q4Weekly) * spendScale;
       const f = forecast(asWeeks([...t.priorWeekly, ...fullWeeks(t, elapsed)]), horizon);
       const open = t.note.kind === 'open-decision';
       const extraLow = open ? p.low : 0;
       const extraHigh = open ? p.high : 0;
-      return { team: t.team, budget: t.budget, soFar, low: soFar + f.low + extraLow, high: soFar + f.high + extraHigh, note: teamNote(s, t, money) };
+      return { team: t.team, budget: t.budget * budgetScale, soFar, low: soFar + f.low + extraLow, high: soFar + f.high + extraHigh, note: teamNote(s, t, money) };
     });
+    const budget = d.budget * budgetScale;
     const soFar = sum(teams.map((t) => t.soFar));
     const low = sum(teams.map((t) => t.low));
     const high = sum(teams.map((t) => t.high));
     const teamOver = teams.some((t) => t.budget > 0 && t.high > t.budget);
-    const status: DeptStatus = low > d.budget ? 'over' : high > d.budget || teamOver ? 'watch' : 'ok';
+    const computedStatus: DeptStatus = low > budget ? 'over' : high > budget || teamOver ? 'watch' : 'ok';
+    const status: DeptStatus = d.engineering ? ILLUSTRATIVE.engineeringStatus : computedStatus;
 
     // Rolling check: forecast each recent week from the weeks before it, count how many landed inside.
     const series = d.teams[0].priorWeekly.map((_, i) => sum(d.teams.map((t) => t.priorWeekly[i])))
@@ -56,7 +63,7 @@ export function q4Summary(s: DemoState, money: (n: number) => string) {
       return actual >= fk.low && actual <= fk.high;
     });
     const priorQuarter = d.engineering ? totalSpend(s) : sum(d.teams.map((t) => sum(t.priorWeekly)));
-    return { name: d.name, engineering: d.engineering, budget: d.budget, soFar, low, high, status, teams, priorQuarter, accuracy: d.engineering ? ILLUSTRATIVE.engineeringForecastAccuracy : { inside: checks.filter(Boolean).length, weeks: checks.length }, computedAccuracy: { inside: checks.filter(Boolean).length, weeks: checks.length } };
+    return { name: d.name, engineering: d.engineering, budget, soFar, low, high, status, teams, priorQuarter, computedStatus, accuracy: d.engineering ? ILLUSTRATIVE.engineeringForecastAccuracy : { inside: checks.filter(Boolean).length, weeks: checks.length }, computedAccuracy: { inside: checks.filter(Boolean).length, weeks: checks.length } };
   });
 
   const all = { soFar: sum(depts.map((d) => d.soFar)), low: sum(depts.map((d) => d.low)), high: sum(depts.map((d) => d.high)) };
