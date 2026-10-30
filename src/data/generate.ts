@@ -87,6 +87,9 @@ export function sampleRunCost(rng: () => number, teamName: string): number {
 }
 export const runawayCost = (rng: () => number) => 100 + rng() * 200;
 
+// Engineering manager per team (synthetic).
+export const TEAM_EM: Record<string, string> = { Payments: 'Ravi S.', Identity: 'Lena K.', Growth: 'Omar D.', Platform: 'Mia T.' };
+
 export const CAPABILITY_CATALOG = TEAMS.flatMap((t) => t.initiatives.flatMap((i) => i.capabilities.map((capability) => ({ capability, initiative: i.name, team: t.team }))));
 
 export function generate(seed = SEED, count = 148): GeneratedData {

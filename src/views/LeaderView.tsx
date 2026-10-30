@@ -6,6 +6,7 @@ import { useStore } from '../state/store';
 import { money, tok, usd } from './fmt';
 import { USD_PER_MILLION_TOKENS } from '../core/tokens';
 import { TaskLink } from './TaskDetail';
+import { TEAM_EM } from '../data/generate';
 import { followUp, heroTask } from '../core/reducer';
 import { ILLUSTRATIVE } from '../data/illustrative';
 
@@ -57,7 +58,7 @@ export function LeaderView() {
           <table>
             <thead><tr><th>Team / initiative</th><th className="num">Budget</th><th className="num">Actual</th><th className="num">Variance</th></tr></thead>
             <tbody>{teams.map((tm) => [
-              <tr key={tm.team} className="team-row"><td>{tm.team}</td><td className="num">{money(tm.budget)}</td><td className="num">{money(tm.actual)} <span className="muted">· {tok(tm.actual)}</span></td><td className={`num ${tm.actual > tm.budget ? 'bad' : 'ok'}`}>{money(tm.actual - tm.budget)}</td></tr>,
+              <tr key={tm.team} className="team-row"><td>{tm.team} <span className="em">(EM: {TEAM_EM[tm.team] ?? 'unassigned'})</span></td><td className="num">{money(tm.budget)}</td><td className="num">{money(tm.actual)} <span className="muted">· {tok(tm.actual)}</span></td><td className={`num ${tm.actual > tm.budget ? 'bad' : 'ok'}`}>{money(tm.actual - tm.budget)}</td></tr>,
               ...inits.filter((i) => i.team === tm.team).map((i) => (
                 <tr key={i.initiative}><td className="indent">{i.initiative}</td><td className="num">{money(i.budget)}</td><td className="num">{money(i.actual)} <span className="muted">· {tok(i.actual)}</span></td><td className={`num ${i.variance > 0 ? 'bad' : 'ok'}`}>{money(i.variance)}</td></tr>
               )),
