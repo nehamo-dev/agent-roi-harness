@@ -15,8 +15,10 @@ export const LABELS: WasteLabel[] = [
   { logId: 'mixed-1', cls: 'retry-loop', start: 3, end: 7 },
   { logId: 'mixed-2', cls: 'retry-loop', start: 2, end: 5 },
   { logId: 'mixed-2', cls: 'repeated-read', start: 4, end: 7 },
-  { logId: 'hero', cls: 'repeated-read', start: 6, end: 11 },
-  { logId: 'hero', cls: 'retry-loop', start: 14, end: 16 },
+  { logId: 'hero', cls: 'repeated-read', start: 0, end: 4 },
+  { logId: 'hero', cls: 'repeated-read', start: 9, end: 14 },
+  { logId: 'hero', cls: 'retry-loop', start: 17, end: 19 },
+  { logId: 'hero', cls: 'retry-loop', start: 25, end: 27 },
 ];
 
 // Logs that must produce zero flags.

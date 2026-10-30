@@ -78,8 +78,8 @@ Target: at least 70% of weeks inside the range (report-only if it misses). A ver
 | E1 | Error vs per-developer average | 30% lower or better | 38.2% vs 92.8% → 58.9% lower | PASS | Global avg 198.6%, per-type avg 156.1% (means are pulled up by runaways). |
 | E1 | Coverage vs width-matched naive | higher | 67.4% vs 41.9% | PASS | Naive = per-developer average with the same 3.48x width. |
 | E1 | Coverage on costliest 5% | report only | 0% (0 of 3) | REPORTED | Tail runs are never inside the quote. |
-| E2 | Precision | 80% | 100% (10/10) | PASS | Retry loop 5/5, repeated read 5/5. The hero log is now T-149 (mTLS) with new hand-written labels. Caveat: labels and rules written by the same author from the same definitions. |
-| E2 | Recall | 70% | 100% (10/10) | PASS | Same caveat. 12 logs. |
+| E2 | Precision | 80% | 100% (12/12) | PASS | Retry loop 6/6, repeated read 6/6. The T-149 hero log now holds four hand-labeled waste spans (two repeated reads, two retry loops). Caveat: labels and rules written by the same author from the same definitions. |
+| E2 | Recall | 70% | 100% (12/12) | PASS | Same caveat. 12 logs. |
 | E2 | Clean and tricky logs flagged | zero | 0 flags on 5 logs | PASS | Savings never exceed log cost (0 violations). |
 | E3 | Consistency checks | all pass | 11/11 | PASS | Replays the T-149 flow: totals match in five states; hero quote ≤ 1.3x; hero cost matches engineer receipt, leader row and CFO entry; "Do all 14" escalates and the leader's choice lands everywhere; finish-6 vs stop give different receipts and totals; tagging moves the scorecard; the decision reaches the CFO's Q3 note, forecast and Q4 Platform; no NaN/negative/empty. |
 | E4 | Scorecard computed, not hard-coded | yes | yes | PASS | `scorecard()` in src/core/selectors.ts; changes when tagging (E3 check and browser: 87.0% → 87.2%) and when the paused run resolves. Quote accuracy tile = E1 coverage recomputed from the store. Later changed by request: the tile now displays an illustrative 89% from `src/data/illustrative.ts`; `scorecard().quoteAccuracy` still computes 66.7% and E3/E4 check the computed value. |

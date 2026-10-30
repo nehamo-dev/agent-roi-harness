@@ -15,11 +15,11 @@ export interface HeroScenario {
   ticket: string;
   title: string;
   summary: string;
-  design: string[]; // "{planned}" is filled with the planned service count
+  design: { name: string; share: number; text: string }[]; // "{planned}" is filled with the planned service count
   outOfScope: string;
   mainRisk: string;
   sidecarNote: string;
-  testCause: string;
+  causes: Record<string, string>; // retry-loop subject -> what the agent found
   firstService: string;
   log: EventLog;
   steps: StepSpec[];
@@ -29,7 +29,7 @@ export interface RunStep {
   kind: StepSpec['kind'];
   spentAfter: number; // dollars, running sum of the log
   servicesDone: number;
-  flag?: Flag; // the detector finding that triggered a correction
+  flags: Flag[]; // detector findings in this step, each one a correction
 }
 
 export function runSteps(s: HeroScenario): RunStep[] {
@@ -37,9 +37,9 @@ export function runSteps(s: HeroScenario): RunStep[] {
   let from = 0;
   return s.steps.map((st) => {
     const spentAfter = s.log.events.slice(0, st.end + 1).reduce((a, e) => a + e.costDelta, 0);
-    const flag = st.kind === 'corrected' ? flags.find((f) => f.detectedAt >= from && f.detectedAt <= st.end) : undefined;
+    const inStep = flags.filter((f) => f.detectedAt >= from && f.detectedAt <= st.end);
     from = st.end + 1;
-    return { kind: st.kind, spentAfter, servicesDone: st.servicesDone, flag };
+    return { kind: st.kind, spentAfter, servicesDone: st.servicesDone, flags: inStep };
   });
 }
 

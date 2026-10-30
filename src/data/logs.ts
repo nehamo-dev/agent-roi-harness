@@ -17,21 +17,24 @@ const log = (id: string, title: string, events: E[]): EventLog => ({ id, title, 
 
 // Hero session T-149 (mTLS between services). Step boundaries live in heroScenario.ts.
 export const HERO_LOG: E[] = [
-  // Started: auth-service (0-5)
-  r('services/auth/tls.go', 0.9), r('lib/client/transport.go', 1.1), e('lib/client/transport.go', 3.2),
-  e('services/auth/main.go', 2.6), t('npm test auth-unit', 0, 2.0), c('deploy --flag mtls auth-service', 0, 2.5),
-  // billing-service, with repeated reads of the certificate config (6-12)
+  // Started: auth-service, with repeated reads of the design doc (0-8)
+  r('docs/mtls-design.md', 0.45), r('services/auth/tls.go', 0.9), r('docs/mtls-design.md', 0.45),
+  r('lib/client/transport.go', 1.1), r('docs/mtls-design.md', 0.45), e('lib/client/transport.go', 2.75),
+  e('services/auth/main.go', 2.0), t('npm test auth-unit', 0, 2.0), c('deploy --flag mtls auth-service', 0, 2.2),
+  // billing-service, with repeated reads of the certificate config (9-15)
   r('certs/config.yaml', 0.634), e('services/billing/tls.go', 4.2), r('certs/config.yaml', 0.634),
   e('services/billing/main.go', 3.1), r('certs/config.yaml', 0.634), r('certs/config.yaml', 0.634),
   t('npm test billing-unit', 0, 2.464),
-  // orders-service, with a retry loop on the integration test (13-19)
+  // orders-service, with a retry loop on the integration test (16-22)
   e('services/orders/tls.go', 3.0), t('npm test auth-integration', 1, 1.7), t('npm test auth-integration', 1, 1.7),
   t('npm test auth-integration', 1, 1.7), r('test/fixtures/certs.pem', 0.6), e('test/fixtures/certs.pem', 1.5),
   t('npm test auth-integration', 0, 1.98),
-  // search and payments, then scope discovery (20-28)
-  e('services/search/tls.go', 3.6), e('services/search/main.go', 3.0), t('npm test search', 0, 2.4),
-  e('services/payments/tls.go', 3.4), t('npm test payments', 0, 2.2), r('deploy/sidecar/rotation.yaml', 1.0),
-  c('scan-services --needs-mtls', 0, 3.0), r('infra/service-inventory.yaml', 1.0), e('services/payments/main.go', 5.0),
+  // search and payments, with a rollout-check retry loop, then scope discovery (23-34)
+  e('services/search/tls.go', 2.9), e('services/search/main.go', 2.7),
+  c('kubectl rollout status deploy/search', 1, 1.0), c('kubectl rollout status deploy/search', 1, 1.0),
+  c('kubectl rollout status deploy/search', 1, 1.0), t('npm test search', 0, 2.4),
+  e('services/payments/tls.go', 2.7), t('npm test payments', 0, 2.2), r('deploy/sidecar/rotation.yaml', 1.0),
+  c('scan-services --needs-mtls', 0, 3.0), r('infra/service-inventory.yaml', 1.0), e('services/payments/main.go', 3.7),
 ];
 
 export const SAMPLE_LOGS: EventLog[] = [

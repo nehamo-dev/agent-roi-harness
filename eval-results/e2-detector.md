@@ -2,13 +2,13 @@
 
 > SYNTHETIC, hand-authored logs. Labels are in src/data/labels.ts, written by reading the logs, not from detector output.
 
-Logs: 12 (5 clean or tricky). Labeled spans: 10.
+Logs: 12 (5 clean or tricky). Labeled spans: 12.
 
 | Scope | Precision | Recall | Detections | Labels |
 |---|---|---|---|---|
-| Overall | 100.0% | 100.0% | 10 | 10 |
-| Retry loop | 100.0% | 100.0% | 5 | 5 |
-| Repeated read | 100.0% | 100.0% | 5 | 5 |
+| Overall | 100.0% | 100.0% | 12 | 12 |
+| Retry loop | 100.0% | 100.0% | 6 | 6 |
+| Repeated read | 100.0% | 100.0% | 6 | 6 |
 
 - Precision >= 80%: PASS
 - Recall >= 70%: PASS
@@ -28,4 +28,4 @@ Logs: 12 (5 clean or tricky). Labeled spans: 10.
 | reads-2 | 1 | 1 | repeated-read [0-4] | $0.12 | $1.36 |
 | mixed-1 | 2 | 2 | repeated-read [1-8], retry-loop [3-7] | $0.74 | $2.32 |
 | mixed-2 | 2 | 2 | retry-loop [2-5], repeated-read [4-7] | $0.42 | $1.74 |
-| hero | 2 | 2 | repeated-read [6-11], retry-loop [14-16] | $5.30 | $61.38 |
+| hero | 4 | 4 | repeated-read [0-4], repeated-read [9-14], retry-loop [17-19], retry-loop [25-27] | $8.20 | $61.38 |
