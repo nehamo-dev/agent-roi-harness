@@ -109,7 +109,7 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   return (
     <div className="cc-window">
       <div className="cc-titlebar">
-        <span className="cc-lights"><i /><i /><i /></span>
+        <span className="cc-lights" aria-hidden="true"><i className="close" /><i className="min" /><i className="max" /></span>
         <span className="cc-title">{S.ticket} · {S.title}</span>
         <span className="cc-sim">simulated session · synthetic data</span>
       </div>
@@ -131,7 +131,7 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
               <p>Here is the design I will follow:</p>
               <ul>{S.design.map((d) => <li key={d}>{fill(d)}</li>)}</ul>
               <p className="muted">{fill(S.outOfScope)} {S.mainRisk}</p>
-              {step === 0 && <p>The quote is in the economics panel. Approve it there and I will start.</p>}
+              {step === 0 && <p>The quote is in the economics panel on the right. Send the approval below, or approve it there, and I will start.</p>}
             </div>
             {shown.map((s, i) => (
               <div key={i} className="cc-turn">
@@ -151,11 +151,13 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
             {decided === 'planned-only' && <div className="cc-agent"><p>Done. The planned {P.plannedUnits} services are on mTLS and the PR is open. The other {P.discoveredUnits - P.plannedUnits} are in a new task{split ? <> (<TaskLink id={split.id} />)</> : null} with their own quote.</p></div>}
             {decided === 'stop' && <div className="cc-agent"><p>Reverted the partial changes. Nothing ships; the scope finding is in the ticket.</p></div>}
           </div>
-          <div className="cc-input"><span>Replay only · this session is simulated</span><button disabled>↑</button></div>
+          {step === 0 && !playing
+            ? <div className="cc-input draft"><span>Approve {tk(ceiling)} and start</span><button className="btn-primary" onClick={play} aria-label="Send">↑</button></div>
+            : <div className="cc-input"><span>Replay only · this session is simulated</span><button disabled aria-label="Send">↑</button></div>}
         </main>
 
         <aside className="cc-panel" aria-label="Economics">
-          <div className="cc-panel-h"><b>Economics</b><span className="muted small">{hero.id} · tokens</span></div>
+          <div className="cc-panel-h"><span><b>Economics</b> <span className="cc-new">New</span></span><span className="muted small">{hero.id} · tokens</span></div>
 
           <section className="cc-sec">
             <div className="eyebrow">Quote</div>

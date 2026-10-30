@@ -192,7 +192,8 @@ hr.sep { border: none; border-top: 1px solid var(--line); margin: 18px 0 20px; }
 /* Engineer view as a desktop coding-agent app (generic styling, no product branding) */
 .cc-window { background: #FBFBF9; border: 1px solid #DCDDE2; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 28px rgba(20, 24, 30, .08); }
 .cc-titlebar { display: flex; align-items: center; gap: 14px; height: 40px; padding: 0 14px; background: #F0F0EC; border-bottom: 1px solid #E2E2DD; font-size: 13px; }
-.cc-lights { display: inline-flex; gap: 7px; } .cc-lights i { width: 11px; height: 11px; border-radius: 50%; background: #D7D7D2; display: block; }
+.cc-lights { display: inline-flex; gap: 8px; } .cc-lights i { width: 12px; height: 12px; border-radius: 50%; display: block; box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .18); }
+.cc-lights .close { background: #FF5F57; } .cc-lights .min { background: #FEBC2E; } .cc-lights .max { background: #28C840; }
 .cc-title { font-weight: 600; flex: 1; text-align: center; color: #3A3F4B; }
 .cc-sim { color: var(--muted); font-size: 12px; }
 .cc-body { display: grid; grid-template-columns: 210px minmax(0, 1fr) 360px; height: 720px; }
@@ -247,3 +248,8 @@ hr.sep { border: none; border-top: 1px solid var(--line); margin: 18px 0 20px; }
 .cc-hood p { margin: 8px 0 0; }
 @media (max-width: 1100px) { .cc-body { grid-template-columns: minmax(0, 1fr) 320px; } .cc-sidebar { display: none; } }
 @media (max-width: 760px) { .cc-body { grid-template-columns: 1fr; height: auto; } .cc-transcript { max-height: 520px; } .cc-panel { border-left: none; border-top: 1px solid var(--line); } }
+
+.cc-panel { position: relative; z-index: 1; box-shadow: inset 0 0 0 2px rgba(59, 79, 208, .55), 0 0 28px 6px rgba(59, 79, 208, .35); }
+.cc-new { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .02em; vertical-align: 2px; }
+.cc-input.draft { color: var(--ink); border-color: var(--accent); }
+.cc-input.draft button { color: #fff; }
