@@ -227,7 +227,7 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
               {planList}
               <div className="cc-actions">
                 <button className="btn-primary" onClick={mainAction}>{playing ? 'Stop and reset' : `Approve ${tk(ceiling)} and start`}</button>
-                <button onClick={() => { stopTimer(); advance(); }}>Step</button>
+                <button onClick={() => { stopTimer(); advance(); }} data-tour="eng-step">Step</button>
               </div>
             </section>
           ) : (
@@ -239,7 +239,7 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
               {quoteOpen && planList}
               <div className="cc-actions">
                 <button onClick={mainAction}>{playing ? 'Stop and reset' : 'Replay'}</button>
-                <button onClick={() => { stopTimer(); advance(); }} disabled={atDecision}>Step</button>
+                <button onClick={() => { stopTimer(); advance(); }} disabled={atDecision} data-tour="eng-step">Step</button>
               </div>
             </section>
           )}

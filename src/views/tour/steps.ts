@@ -19,13 +19,17 @@ export const TOUR_STEPS: TourStep[] = [
   {
     persona: 'Engineer', targets: ['eng-selfheal'], title: 'Self-healing',
     body: 'As the agent works, the harness reads its log. When the agent repeats work with nothing changed, like re-reading the same file or re-running a failing test, the harness fixes it without asking. Each self-correction shows what it saved.',
-    before: async (c) => { c.click('eng-send'); await c.waitFor('[data-tour="eng-selfheal"] li'); },
+    // Advance the run one step at a time so the page holds still while the card is up.
+    before: async (c) => { c.click('eng-step'); await c.waitFor('[data-tour="eng-selfheal"] li'); },
   },
   {
     persona: 'Engineer', targets: ['eng-decide'], title: 'It needs your input',
     body: 'The job turned out to be 14 services, not the 6 in the plan, and spend passed the ceiling, so the run pauses. Each option shows its cost and who may approve it. The choice is drafted in the message box.',
     next: 'Do all 14 →',
-    before: async (c) => { await c.waitFor('eng-decide', 12000); },
+    before: async (c) => {
+      for (let k = 0; k < 3; k++) { c.click('eng-step'); await c.sleep(250); }
+      await c.waitFor('eng-decide');
+    },
   },
   {
     persona: 'Engineer', targets: ['eng-escalated'], title: 'Above his limit, so it goes up',

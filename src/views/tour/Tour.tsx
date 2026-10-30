@@ -22,6 +22,17 @@ const visible = (el: Element) => { const r = el.getBoundingClientRect(); return 
 const find = (s: string) => [...document.querySelectorAll(s)].find(visible);
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+// True when an element is fully visible in the viewport and in every scrolling ancestor.
+function inView(el: Element): boolean {
+  const r = el.getBoundingClientRect();
+  if (r.top < 0 || r.bottom > window.innerHeight) return r.height > window.innerHeight; // taller than the screen: leave it
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const pr = p.getBoundingClientRect();
+    if (p.scrollHeight > p.clientHeight + 1 && (r.top < pr.top - 1 || r.bottom > pr.bottom + 1)) return r.height > pr.height;
+  }
+  return true;
+}
+
 const ctx: TourCtx = {
   sleep,
   click: (name) => (find(sel(name)) as HTMLElement | undefined)?.click(),
@@ -61,9 +72,12 @@ export function Tour({ steps, setTab, onExit, onReplay }: { steps: TourStep[]; s
     return () => { cancelled = true; };
   }, [i, step, setTab]);
 
-  // Follow the targets as the page scrolls and the run updates.
+  // Follow the targets as the page scrolls and the run updates; if a target slips out of view
+  // (page or an inner panel), bring it back.
   useEffect(() => {
     const measure = () => {
+      const first = find(sel(step.targets[0]));
+      if (first && !busy && !inView(first)) first.scrollIntoView({ block: 'nearest' });
       const rects = step.targets.map((t) => find(sel(t))?.getBoundingClientRect()).filter((r): r is DOMRect => !!r);
       if (!rects.length) return setBox(null);
       const top = Math.min(...rects.map((r) => r.top));
@@ -73,7 +87,15 @@ export function Tour({ steps, setTab, onExit, onReplay }: { steps: TourStep[]; s
     measure();
     const id = setInterval(measure, 120);
     return () => clearInterval(id);
-  }, [step]);
+  }, [step, busy]);
+
+  // The overlay blocks clicks, not scrolling: pass the wheel to whatever scrolls under the pointer.
+  const onWheel = (e: React.WheelEvent) => {
+    const under = document.elementsFromPoint(e.clientX, e.clientY).find((el) => !el.closest('.tour'));
+    let el: Element | null = under ?? null;
+    while (el && !(el.scrollHeight > el.clientHeight + 1 && /(auto|scroll)/.test(getComputedStyle(el).overflowY))) el = el.parentElement;
+    (el ?? document.scrollingElement)?.scrollBy({ top: e.deltaY, left: e.deltaX });
+  };
 
   const next = useCallback(() => { if (!busy && !last) setI((n) => n + 1); }, [busy, last]);
   const back = useCallback(() => { if (!busy && i > 0) setI((n) => n - 1); }, [busy, i]);
@@ -106,7 +128,7 @@ export function Tour({ steps, setTab, onExit, onReplay }: { steps: TourStep[]; s
 
   return (
     <div className="tour" role="dialog" aria-modal="true" aria-label="Guided demo">
-      <div className="tour-block" />
+      <div className="tour-block" onWheel={onWheel} />
       {box && <div className="tour-spot" style={{ top: box.top - PAD, left: box.left - PAD, width: box.width + PAD * 2, height: box.height + PAD * 2 }} />}
       {!busy && (
         <div className="tour-card" style={{ top, left, width: CARD_W }}>
