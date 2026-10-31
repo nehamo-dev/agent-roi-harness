@@ -25,7 +25,7 @@ function teamNote(s: DemoState, t: Q4Team, money: (n: number) => string): string
   const p = pausedScopeCost(s);
   if (!p.decided) return `Wider range: one open scope question could add up to ${money(p.byOption.continue)}.`;
   if (p.decided === 'stop') return 'The open scope question is settled: the work stopped, so nothing is added.';
-  return `Includes ${money(p.byOption[p.decided])} for the scope leadership approved on ${p.capability}.`;
+  return `Includes ${money(p.byOption[p.decided])} for the scope the team chose on ${p.capability}.`;
 }
 
 export function q4Summary(s: DemoState, money: (n: number) => string) {

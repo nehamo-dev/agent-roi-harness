@@ -8,7 +8,7 @@ import { buildDataset } from '../src/data/dataset';
 const BACKTEST_WEEKS = 6; // weeks 8-13 of the quarter; each forecast uses only earlier weeks
 // Org-scale weekly spend, same basis as the CFO forecast: ongoing work, excluding one-off spend and the paused capability.
 const ds = buildDataset();
-const weeks = orgWeekly({ ...ds, pausedDecision: null, decidedBy: null, heroEscalated: false }).map((w) => ({ start: w.start, spend: w.spend - w.oneOff - w.paused }));
+const weeks = orgWeekly({ ...ds, pausedDecision: null }).map((w) => ({ start: w.start, spend: w.spend - w.oneOff - w.paused }));
 const rows = weeks.slice(-BACKTEST_WEEKS).map((w) => {
   const idx = weeks.indexOf(w);
   const f = forecast(weeks.slice(0, idx), 1);

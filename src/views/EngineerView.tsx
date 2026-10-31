@@ -14,7 +14,7 @@ import { TaskLink } from './TaskDetail';
 const TICK_MS = 1400;
 const fill = (text: string) => text.replace('{planned}', String(P.plannedUnits));
 
-export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
+export function EngineerView({ onOpenVp }: { onOpenVp: () => void }) {
   const { state, dispatch } = useStore();
   const hero = heroTask(state);
   const steps = useMemo(() => runSteps(S), []);
@@ -32,8 +32,7 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   const options = decisionOptions(pausedTask, P);
   const rate = runRate(pausedTask, P);
   const choice: DecisionKey | null = state.pausedDecision?.key ?? null;
-  const decided = state.decidedBy === 'engineer' ? choice : null;
-  const escalated = state.heroEscalated;
+  const decided = choice;
   const split = followUp(state);
   const history = useMemo(() => quoteHistory(state), [state]);
   const est = useMemo(() => estimate({ type: hero.type, size: hero.size, repoArea: hero.repoArea, team: hero.team, developer: hero.developer }, history), [hero.type, hero.size, hero.repoArea, hero.team, hero.developer, history]);
@@ -45,7 +44,7 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
 
   // Keep the newest message in view as the run plays.
   const transcript = useRef<HTMLDivElement>(null);
-  useEffect(() => { transcript.current?.scrollTo({ top: transcript.current.scrollHeight, behavior: 'smooth' }); }, [step, state.pausedDecision, state.heroEscalated]);
+  useEffect(() => { transcript.current?.scrollTo({ top: transcript.current.scrollHeight, behavior: 'smooth' }); }, [step, state.pausedDecision]);
 
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTimer = () => { if (timer.current) clearInterval(timer.current); timer.current = null; setPlaying(false); };
@@ -56,15 +55,11 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   const reset = () => { stopTimer(); setStep(0); setSelected(null); setQuoteOpen(false); dispatch({ kind: 'resetHero', initial }); };
   const mainAction = () => (step === 0 && !playing ? play() : reset());
 
-  const choose = (key: DecisionKey) => {
-    const o = options.find((x) => x.key === key)!;
-    if (o.addedCost > AUTO_APPROVE_LIMIT) dispatch({ kind: 'escalate' });
-    else dispatch({ kind: 'resolvePaused', option: o, by: 'engineer' });
-  };
+  const choose = (key: DecisionKey) => dispatch({ kind: 'resolvePaused', option: options.find((x) => x.key === key)! });
 
-  // A pending decision is drafted into the input bar: the cheapest option that still ships and is within the engineer's limit.
-  const pending = step >= last && !decided && !escalated && hero.status === 'paused';
-  const defaultChoice = options.filter((o) => o.delivered && o.addedCost <= AUTO_APPROVE_LIMIT).sort((a, b) => a.addedCost - b.addedCost)[0]?.key ?? null;
+  // A pending decision is drafted into the input bar: the cheapest option that still ships.
+  const pending = step >= last && !decided && hero.status === 'paused';
+  const defaultChoice = options.filter((o) => o.delivered).sort((a, b) => a.addedCost - b.addedCost)[0]?.key ?? null;
   useEffect(() => { if (pending && selected === null) setSelected(defaultChoice); }, [pending, selected, defaultChoice]);
   const selectedOption = options.find((o) => o.key === selected);
 
@@ -72,11 +67,11 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
   const shown = steps.slice(0, step);
   const atDecision = step >= last;
   const spent = decided && state.pausedDecision ? state.pausedDecision.finalCost : shown.length ? shown[shown.length - 1].spentAfter : 0;
-  const done = decided === 'planned-only' ? P.plannedUnits : shown.length ? shown[shown.length - 1].servicesDone : 0;
+  const done = decided === 'continue' ? P.discoveredUnits : decided === 'planned-only' ? P.plannedUnits : shown.length ? shown[shown.length - 1].servicesDone : 0;
   const total = atDecision ? P.discoveredUnits : P.plannedUnits;
   const doneText = decided === 'stop' ? `0 of ${P.discoveredUnits} (reverted)` : `${done} of ${total}`;
-  const status = decided === 'planned-only' ? ['finished, partial scope', 'ok'] : decided === 'stop' ? ['stopped and reverted', 'dim']
-    : escalated ? ['paused, waiting for VP Engineering', 'warn'] : atDecision ? ['paused, decision needed', 'bad'] : step > 0 ? ['running', 'ok'] : ['not started', 'dim'];
+  const status = decided === 'continue' ? ['finished, all services', 'ok'] : decided === 'planned-only' ? ['finished, partial scope', 'ok'] : decided === 'stop' ? ['stopped and reverted', 'dim']
+    : atDecision ? ['paused, decision needed', 'bad'] : step > 0 ? ['running', 'ok'] : ['not started', 'dim'];
 
   // Tool calls for each step come straight from the event log.
   const segment = (i: number): LogEvent[] => S.log.events.slice(i === 0 ? 0 : S.steps[i - 1].end + 1, S.steps[i].end + 1);
@@ -161,15 +156,15 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
                 )}
               </div>
             ))}
-            {(decided || escalated) && <div className="cc-user">{chosenLabel[escalated && !decided ? 'continue' : decided!]}</div>}
-            {escalated && <div className="cc-agent"><p>{state.decidedBy === 'leader' && state.pausedDecision ? `Your VP of Engineering chose “${state.pausedDecision.label}”.` : 'Above your limit, so it went to your VP of Engineering. Staying paused.'}</p></div>}
+            {decided && <div className="cc-user">{chosenLabel[decided]}</div>}
+            {decided === 'continue' && <div className="cc-agent"><p>Done: all {P.discoveredUnits} services on mTLS, PR open.</p></div>}
             {decided === 'planned-only' && <div className="cc-agent"><p>Done: {P.plannedUnits} services on mTLS, PR open. The other {P.discoveredUnits - P.plannedUnits} are in {split ? <TaskLink id={split.id} /> : 'a new task'}.</p></div>}
             {decided === 'stop' && <div className="cc-agent"><p>Reverted. Nothing ships.</p></div>}
           </div>
           {step === 0 && !playing
             ? <div className="cc-input draft"><span>Approve {tk(ceiling)} and start</span><button className="btn-primary" onClick={play} aria-label="Send" data-tour="eng-send">↑</button></div>
             : pending && selectedOption
-              ? <div className="cc-input draft"><span>{selectedOption.label} <span className="muted">· +{tk(selectedOption.addedCost)}{selectedOption.addedCost > AUTO_APPROVE_LIMIT ? ', goes to your VP of Engineering' : ''}</span></span><button className="btn-primary" onClick={() => choose(selectedOption.key)} aria-label="Send decision" data-tour="eng-send-decision">↑</button></div>
+              ? <div className="cc-input draft"><span>{selectedOption.label} <span className="muted">· +{tk(selectedOption.addedCost)}</span></span><button className="btn-primary" onClick={() => choose(selectedOption.key)} aria-label="Send decision" data-tour="eng-send-decision">↑</button></div>
               : <div className="cc-input"><span>Replay only · this session is simulated</span><button disabled aria-label="Send">↑</button></div>}
         </main>
 
@@ -184,37 +179,25 @@ export function EngineerView({ onOpenLeader }: { onOpenLeader: () => void }) {
                 <button key={o.key} className={`cc-opt${o.key === selected ? ' selected' : ''}`} onClick={() => setSelected(o.key)} aria-pressed={o.key === selected} data-tour={`eng-opt-${o.key}`}>
                   <span className="cc-opt-top"><b>{o.label}</b><b>+{tk(o.addedCost)}</b></span>
                   <span className="muted small">total {tk(o.finalCost)} · {o.key === 'continue' ? `${tk(rate)} per service` : o.detail}</span>
-                  {o.addedCost > AUTO_APPROVE_LIMIT
-                    ? <span className="authority warn">Above your approval limit. Goes to your VP of Engineering.</span>
-                    : <span className="authority ok">You can decide this.</span>}
                 </button>
               ))}
             </section>
           )}
 
-          {escalated && (
-            <section className="cc-sec cc-escalated" data-tour="eng-escalated">
-              <b>Sent to your VP of Engineering</b>
-              <p className="small">{state.decidedBy === 'leader' && state.pausedDecision
-                ? <>Your VP of Engineering chose “{state.pausedDecision.label}”. Final cost {tk(state.pausedDecision.finalCost)}. </>
-                : <>Doing all {P.discoveredUnits} services costs more than you can approve alone. The run stays paused at {tk(pausedCost)} until they decide. </>}
-                <button className="link" onClick={onOpenLeader}>Open it in the VP Engineering view →</button></p>
-            </section>
-          )}
-
-          {decided && decided !== 'continue' && (
-            <section className="cc-sec">
+          {decided && (
+            <section className="cc-sec" data-tour="eng-receipt">
               <div className="eyebrow">Receipt</div>
-              <div className="small muted">Capability: {decided === 'planned-only' ? `mTLS on ${P.plannedUnits} of ${P.discoveredUnits} services` : 'not delivered'}</div>
+              <div className="small muted">Capability: {decided === 'continue' ? `mTLS on all ${P.discoveredUnits} services` : decided === 'planned-only' ? `mTLS on ${P.plannedUnits} of ${P.discoveredUnits} services` : 'not delivered'}</div>
               <div className="cc-receipt">
                 <div><span className="muted small">Quoted</span><b>{tk(ceiling)}</b><span className="muted small">ceiling, for {P.plannedUnits} services</span></div>
-                <div><span className="muted small">Spent</span><b>{tk(final)}</b><span className="muted small">{decided === 'planned-only' ? `${tk(over)} over, ${Math.round((over / ceiling) * 100)}% over` : `${tk(over)} over the ceiling`}</span></div>
+                <div><span className="muted small">Spent</span><b>{tk(final)}</b><span className="muted small">{decided === 'stop' ? `${tk(over)} over the ceiling` : `${tk(over)} over, ${Math.round((over / ceiling) * 100)}% over`}</span></div>
                 <div><span className="muted small">Self-corrections</span><b className="saved-v">{tk(wasteCaught(S))}</b><span className="muted small">{steps.flatMap((x) => x.flags).length} repeated reads and retries stopped</span></div>
               </div>
-              <p className="small">{decided === 'planned-only'
-                ? `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You finished the planned ${P.plannedUnits} and split the other ${P.discoveredUnits - P.plannedUnits} into a new task, so the extra spend is explained by a scope change, not by waste.`
+              <p className="small">{decided === 'continue'
+                ? `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You chose to finish all ${P.discoveredUnits}, so the extra spend is explained by a scope change, not by waste.`
+                : decided === 'planned-only' ? `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You finished the planned ${P.plannedUnits} and split the other ${P.discoveredUnits - P.plannedUnits} into a new task, so the extra spend is explained by a scope change, not by waste.`
                 : `The plan assumed ${P.plannedUnits} services and the real job was ${P.discoveredUnits}. You stopped early to avoid a ${tk(options[0].finalCost)} bill. The ${tk(final)} bought a clear answer about the real scope, not a shipped capability.`}</p>
-              <p className="small"><span className="muted">{decided === 'planned-only' ? <>Simulated PR #{hero.prNumber} · new task {split ? <TaskLink id={split.id} /> : null}</> : 'No PR. Partial changes reverted.'}</span> · <button className="link" onClick={onOpenLeader}>Now visible to your VP of Engineering →</button></p>
+              <p className="small"><span className="muted">{decided === 'planned-only' ? <>Simulated PR #{hero.prNumber} · new task {split ? <TaskLink id={split.id} /> : null}</> : decided === 'continue' ? `Simulated PR #${hero.prNumber}` : 'No PR. Partial changes reverted.'}</span> · <button className="link" onClick={onOpenVp}>Now visible to your VP of Engineering →</button></p>
             </section>
           )}
 

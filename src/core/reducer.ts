@@ -10,15 +10,12 @@ export interface DemoState {
   capabilities: CapabilityAggregate[];
   q4: Q4Data;
   pausedDecision: DecisionOption | null;
-  decidedBy: 'engineer' | 'leader' | null;
-  heroEscalated: boolean;
 }
 
 export type Action =
   | { kind: 'tag'; taskId: string; justified: Justified }
   | { kind: 'heroPaused'; cost: number }
-  | { kind: 'escalate' }
-  | { kind: 'resolvePaused'; option: DecisionOption; by: 'engineer' | 'leader' }
+  | { kind: 'resolvePaused'; option: DecisionOption }
   | { kind: 'resetHero'; initial: DemoState }
   | { kind: 'reset'; initial: DemoState };
 
@@ -43,8 +40,6 @@ export function reducer(state: DemoState, action: Action): DemoState {
       return { ...state, tasks: state.tasks.map((t) => (t.id === action.taskId ? { ...t, justified: action.justified } : t)) };
     case 'heroPaused':
       return { ...state, tasks: state.tasks.map((t) => (t.role === 'hero' ? { ...t, status: 'paused', actualCost: round2(action.cost) } : t)) };
-    case 'escalate':
-      return { ...state, heroEscalated: true };
     case 'resolvePaused': {
       const o = action.option;
       const hero = heroTask(state);
@@ -52,7 +47,7 @@ export function reducer(state: DemoState, action: Action): DemoState {
         ? { ...t, status: 'completed' as const, actualCost: round2(o.finalCost), delivered: o.delivered, justified: o.delivered ? t.justified : 'no' as const }
         : t));
       return {
-        ...state, pausedDecision: o, decidedBy: action.by,
+        ...state, pausedDecision: o,
         tasks: o.key === 'planned-only' ? [...tasks, followUpTask(state, hero)] : tasks,
       };
     }
@@ -60,7 +55,7 @@ export function reducer(state: DemoState, action: Action): DemoState {
       const hero = heroTask(action.initial);
       const ids = new Set(action.initial.tasks.map((t) => t.id));
       return {
-        ...state, pausedDecision: null, decidedBy: null, heroEscalated: false,
+        ...state, pausedDecision: null,
         tasks: state.tasks.filter((t) => ids.has(t.id)).map((t) => (t.role === 'hero' ? hero : t)),
       };
     }

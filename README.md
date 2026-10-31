@@ -28,12 +28,12 @@ Other commands:
 
 ## The three-minute demo
 
-Press **▶ Play demo** in the header for a guided tour: it resets the demo, drives each step itself (approve, run, escalate, decide) and spotlights what matters for the engineer, the VP of Engineering and the CFO. Use Next / Back or the arrow keys; Esc exits. Or walk it yourself:
+Press **▶ Play demo** in the header for a guided tour: it resets the demo, drives each step itself (approve, run, decide) and spotlights what matters for the engineer, the VP of Engineering and the CFO. Use Next / Back or the arrow keys; Esc exits. Or walk it yourself:
 
 
-1. **Engineer** (about 1 min), shown as a desktop coding-agent app with an Economics panel on the right: task T-149, "Require mTLS between internal services" (Max W., Platform). Approve the 9.82M-token ceiling and start. The harness self-corrects four times (two repeated reads, two retry loops), each shown with its savings, then stops the run when it finds 14 services instead of the 6 planned. Choose: do all 14 (above the engineer's limit, so it goes to the VP of Engineering), finish the 6 and re-quote the rest, or stop and revert. Amounts in this view are in tokens.
-2. **VP Engineering** (about 1 min): the run appears as "latest run". Decide the paused run (T-149), tag a run in the queue, and watch the scorecard move.
-3. **CFO** (about 1 min): the Q4 forecast range, estimate reliability by month, and cost per capability. The hero row traces back to the engineer's receipt. Labeled "cost per outcome, not value."
+1. **Engineer** (about 1 min), shown as a desktop coding-agent app with an Economics panel on the right: task T-149, "Require mTLS between internal services" (Max W., Platform). Approve the 9.82M-token ceiling and start. The harness self-corrects four times (two repeated reads, two retry loops), each shown with its savings, then stops the run when it finds 14 services instead of the 6 planned. Choose: do all 14, finish the 6 and re-quote the rest, or stop and revert. Each choice ends in a receipt. Amounts in this view are in tokens.
+2. **VP Engineering** (about 1 min): the quarter's forecast against plan leads, then control and quote accuracy; budget vs actual by team, and only the runs that went off plan, including T-149 with Max's choice.
+3. **CFO** (about 1 min): the quarter's forecast leads, across departments and for Engineering by team, with cost per capability open on the page. Labeled "cost per outcome, not value".
 
 The story strip under the banner has a Next button for each step. "Reset demo" returns everything to the start.
 

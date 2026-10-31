@@ -4,13 +4,13 @@ import { decisionOptions } from '../src/core/decision';
 import { q4Summary } from '../src/core/q4';
 import { followUp, heroTask, reducer, type DemoState } from '../src/core/reducer';
 import { budgetVsActual, capabilityRows, finishedWithinBudget, guardrails, nextQuarterForecast, offPlanRuns, orgWeekly, overBudgetItems, scorecard, totalSpend } from '../src/core/selectors';
-import { AUTO_APPROVE_LIMIT, HERO_QUOTE_MAX_WIDTH, runSteps } from '../src/core/session';
+import { HERO_QUOTE_MAX_WIDTH, runSteps } from '../src/core/session';
 import { sum } from '../src/core/stats';
 import { buildDataset } from '../src/data/dataset';
 import { HERO_SCENARIO } from '../src/data/heroScenario';
 import { PAUSED_SCENARIO } from '../src/data/pausedScenario';
 
-const initial: DemoState = { ...buildDataset(), pausedDecision: null, decidedBy: null, heroEscalated: false };
+const initial: DemoState = { ...buildDataset(), pausedDecision: null };
 const results: { check: string; pass: boolean; detail: string }[] = [];
 const check = (name: string, pass: boolean, detail: string) => results.push({ check: name, pass, detail });
 const close = (a: number, b: number) => Math.abs(a - b) < 0.005;
@@ -26,13 +26,12 @@ const sPaused = reducer(initial, { kind: 'heroPaused', cost: pausedCost });
 const hero0 = heroTask(sPaused);
 const opts = decisionOptions(hero0, PAUSED_SCENARIO);
 const opt = (k: string) => opts.find((o) => o.key === k)!;
-const sSix = reducer(sPaused, { kind: 'resolvePaused', option: opt('planned-only'), by: 'engineer' });
-const sStop = reducer(sPaused, { kind: 'resolvePaused', option: opt('stop'), by: 'engineer' });
-const sEsc = reducer(sPaused, { kind: 'escalate' });
-const sAll = reducer(sEsc, { kind: 'resolvePaused', option: opt('continue'), by: 'leader' });
+const sSix = reducer(sPaused, { kind: 'resolvePaused', option: opt('planned-only') });
+const sStop = reducer(sPaused, { kind: 'resolvePaused', option: opt('stop') });
+const sAll = reducer(sPaused, { kind: 'resolvePaused', option: opt('continue') });
 
 // 1. Totals agree.
-for (const [label, s] of [['initial', initial], ['hero paused', sPaused], ['engineer finished 6', sSix], ['leader approved all', sAll]] as const) {
+for (const [label, s] of [['initial', initial], ['hero paused', sPaused], ['engineer finished 6', sSix], ['engineer did all 14', sAll]] as const) {
   check(`Total spend identical in leader and CFO views (${label})`,
     close(leaderTotal(s), cfoTotal(s)) && close(leaderTotal(s), totalSpend(s)) && close(leaderTotal(s), storeTotal(s)) && close(leaderTotal(s), chartTotal(s)),
     `leader $${leaderTotal(s).toFixed(2)}, CFO $${cfoTotal(s).toFixed(2)}, CFO weekly chart $${chartTotal(s).toFixed(2)}, recomputed $${storeTotal(s).toFixed(2)}`);
@@ -52,15 +51,15 @@ check('Hero cost matches across engineer receipt, leader row and CFO entry',
     && close(rowSix.spent - rowInit.spent, heroSix.actualCost) && rowSix.sampled.some((t) => t.id === heroSix.id),
   `paused at $${pausedCost.toFixed(2)}; receipt $${opt('planned-only').finalCost.toFixed(2)} = leader task $${heroSix.actualCost.toFixed(2)}; CFO capability rises by $${(rowSix.spent - rowInit.spent).toFixed(2)}`);
 
-// 4. Escalation: only the option above the limit goes to the leader, and the leader's choice lands everywhere.
-const offEsc = offPlanRuns(sEsc).find((o) => o.task.id === hero0.id);
-check('"Do all 14" escalates; the leader decides it',
-  opt('continue').addedCost > AUTO_APPROVE_LIMIT && opt('planned-only').addedCost <= AUTO_APPROVE_LIMIT && opt('stop').addedCost <= AUTO_APPROVE_LIMIT
-    && heroTask(sEsc).status === 'paused' && sEsc.heroEscalated && offEsc?.state === 'needs decision'
-    && sAll.decidedBy === 'leader' && close(leaderTotal(sAll) - leaderTotal(sPaused), opt('continue').addedCost),
-  `continue +$${opt('continue').addedCost.toFixed(2)} > $${AUTO_APPROVE_LIMIT} limit; T-149 stays paused and shows "needs decision"; leader approval moves totals by +$${opt('continue').addedCost.toFixed(2)}`);
+// 4. "Do all 14" is the engineer's call too, and lands everywhere.
+const offAll = offPlanRuns(sAll).find((o) => o.task.id === hero0.id);
+check('"Do all 14" resolves in the engineer view and lands everywhere',
+  heroTask(sAll).status === 'completed' && close(heroTask(sAll).actualCost, Math.round(opt('continue').finalCost * 100) / 100)
+    && close(leaderTotal(sAll) - leaderTotal(sPaused), heroTask(sAll).actualCost - heroTask(sPaused).actualCost)
+    && offAll?.state === 'resolved' && !!offAll.note.includes(opt('continue').label),
+  `T-149 completes at $${heroTask(sAll).actualCost.toFixed(2)}; totals move by +$${(leaderTotal(sAll) - leaderTotal(sPaused)).toFixed(2)}; VP off-plan row: ${offAll?.note}`);
 
-// 5. The engineer's two choices produce different receipts and downstream numbers.
+// 5. The engineer's other choices produce different receipts and downstream numbers.
 const split = followUp(sSix);
 check('Engineer choices change the receipt and downstream numbers',
   !close(heroTask(sSix).actualCost, heroTask(sStop).actualCost) && !close(totalSpend(sSix), totalSpend(sStop))
@@ -102,7 +101,7 @@ function walk(v: unknown, path: string) {
   else if (Array.isArray(v)) { if (v.length === 0 && !/similar/.test(path)) bad.push(`${path} empty array`); v.forEach((x, i) => walk(x, `${path}[${i}]`)); }
   else if (v && typeof v === 'object') Object.entries(v).forEach(([k, x]) => walk(x, `${path}.${k}`));
 }
-for (const [label, s] of [['initial', initial], ['paused', sPaused], ['finished 6', sSix], ['stopped', sStop], ['leader approved all', sAll]] as const) {
+for (const [label, s] of [['initial', initial], ['paused', sPaused], ['finished 6', sSix], ['stopped', sStop], ['engineer did all 14', sAll]] as const) {
   walk({ sc: scorecard(s), bva: budgetVsActual(s), off: offPlanRuns(s).map((o) => ({ overBy: o.overBy, note: o.note })), caps: capabilityRows(s).map(({ sampled, aggregate, ...r }) => r), weeks: orgWeekly(s), fc: nextQuarterForecast(s), within: finishedWithinBudget(s), overItems: overBudgetItems(s, (n) => n.toFixed(0)).map((o) => ({ effect: o.effect, over: o.row.over })), rails: guardrails(s), q4: q4Summary(s, (n) => n.toFixed(0)).depts.map(({ teams, ...d }) => ({ ...d, teams: teams.map(({ note, ...t }) => t) })) }, label);
 }
 check('No NaN, negative or empty values (variances excepted)', bad.length === 0, bad.length ? bad.slice(0, 5).join('; ') : 'all view-level outputs clean across five states');
@@ -111,7 +110,7 @@ const allPass = results.every((r) => r.pass);
 const out = [
   '# E3 cross-view consistency',
   '',
-  '> SYNTHETIC DATA. Replays UI actions (engineer plays T-149, then chooses; leader decides escalations) through the shared reducer and the selectors every view renders from.',
+  '> SYNTHETIC DATA. Replays UI actions (engineer plays T-149, then chooses) through the shared reducer and the selectors every view renders from.',
   '',
   '| Check | Status | Detail |',
   '|---|---|---|',

@@ -15,7 +15,7 @@ export const PAUSED_SCENARIO = {
   note: {
     cause: `Discovery found that ${DISCOVERED} services need encrypted service-to-service traffic, not the ${PLANNED} we planned, and certificate rotation needs a shared change.`,
     pending: 'Work is paused until a decision is made on how far to go; this is a one-time scope change, not a recurring cost.',
-    continue: `Leadership approved finishing all ${DISCOVERED} services; this is a one-time scope change, not a recurring cost.`,
+    continue: `The team chose to finish all ${DISCOVERED} services; this is a one-time scope change, not a recurring cost.`,
     'planned-only': `The team finished the planned ${PLANNED} and moved the other ${DISCOVERED - PLANNED} to a separately quoted task; it will not recur here.`,
     stop: 'The team stopped the work and reverted it, so this capability will not ship; it will not recur.',
   },

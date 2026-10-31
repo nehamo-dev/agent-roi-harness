@@ -12,7 +12,7 @@ import { TOUR_STEPS } from './views/tour/steps';
 // One story, three views. About a minute each.
 const STORY: Record<Tab, string> = {
   Engineer: 'Press the blue button. The agent works on a real-sized job, the harness catches waste, then stops it when the plan turns out to be wrong.',
-  'VP Engineering': 'The same run now shows up in the budget. Only off-plan runs are surfaced. Decide the paused run and watch the totals and the CFO view move.',
+  'VP Engineering': 'The same run now shows up in the budget. Only off-plan runs are surfaced, with what was done about each.',
   CFO: 'The same runs now roll up to company spend. Only overspend is called out, by team, in plain language.',
 };
 
@@ -41,9 +41,9 @@ export function App() {
       {/* Views stay mounted so the engineer run survives tab switches. */}
       <TaskDetailHost>
       <main key={runKey}>
-        <div hidden={tab !== 'Engineer'}><EngineerView onOpenLeader={() => setTab('VP Engineering')} /></div>
+        <div hidden={tab !== 'Engineer'}><EngineerView onOpenVp={() => setTab('VP Engineering')} /></div>
         <div hidden={tab !== 'VP Engineering'}><LeaderView /></div>
-        <div hidden={tab !== 'CFO'}><CfoView onOpenEngineer={() => setTab('Engineer')} /></div>
+        <div hidden={tab !== 'CFO'}><CfoView /></div>
       </main>
       </TaskDetailHost>
       {tourKey !== null && <Tour key={tourKey} steps={TOUR_STEPS} setTab={setTab} onExit={() => setTourKey(null)} onReplay={playDemo} />}

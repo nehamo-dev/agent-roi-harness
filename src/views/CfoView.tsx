@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Area, Bar, ComposedChart, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { q4Summary, type DeptStatus } from '../core/q4';
-import { heroTask } from '../core/reducer';
 import { capabilityRows, finishedWithinBudget, nextQuarterForecast, orgWeekly, overBudgetItems, pausedScopeCost, totalSpend } from '../core/selectors';
 import { sum } from '../core/stats';
 import { ORG_ENGINEERS } from '../data/enterprise';
@@ -19,7 +18,6 @@ function niceTicks(max: number): number[] {
   return Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step);
 }
 
-type Sheet = 'trace' | 'all' | null;
 type Quarter = 'Q3' | 'Q4';
 
 const STATUS_LABEL: Record<DeptStatus, string> = {
@@ -28,9 +26,8 @@ const STATUS_LABEL: Record<DeptStatus, string> = {
   over: 'Over budget',
 };
 
-export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
+export function CfoView() {
   const { state } = useStore();
-  const [sheet, setSheet] = useState<Sheet>(null);
   const [quarter, setQuarter] = useState<Quarter>('Q4');
   const [deptName, setDeptName] = useState('Engineering');
   const q4 = q4Summary(state, money);
@@ -49,8 +46,6 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
   const restInProgress = rest.filter((r) => r.status === 'in progress').length;
   const spentBy = (st: string) => sum(rows.filter((r) => r.status === st).map((r) => r.spent));
   const stopped = spentBy('stopped');
-  const hero = heroTask(state);
-  const heroRow = rows.find((r) => r.capability === hero.capability)!;
 
   const lastStart = weeks[weeks.length - 1].start;
   const chart = [
@@ -65,7 +60,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
         <div>
           <h2 className="cfo-title">{quarter === 'Q4' ? 'AI spend, Q4 2026 so far' : 'AI spend, Q3 2026 · Engineering'}</h2>
           <p className="cfo-subtitle">{quarter === 'Q4'
-            ? <>All departments: {money(q4.all.soFar)} spent through {asOf}, with a full-quarter forecast of {moneyRange(q4.all.low, q4.all.high)}. Engineering is about {Math.round(q4.engShare * 100)}% of it.</>
+            ? <>All departments: forecast of {moneyRange(q4.all.low, q4.all.high)} for the quarter, with {money(q4.all.soFar)} spent through {asOf}. Engineering is about {Math.round(q4.engShare * 100)}% of it.</>
             : <>Closed quarter. Engineering only, where spend is tracked by capability.</>}</p>
         </div>
         <div className="quarter-switch">
@@ -78,23 +73,23 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
         <>
           <div className="dept-tabs" data-tour="cfo-depts">{q4.depts.map((d) => (
             <button key={d.name} className={d.name === dept.name ? 'dept active' : 'dept'} onClick={() => setDeptName(d.name)} data-tour={`cfo-dept-${d.name}`}>
-              <span className={`dot ${d.status}`} /><b>{d.name}</b><span className="dept-figs">{money(d.soFar)} so far · Forecast {moneyRange(d.low, d.high)}</span>
+              <span className={`dot ${d.status}`} /><b>{d.name}</b><span className="dept-figs">Forecast {moneyRange(d.low, d.high)} · {money(d.soFar)} so far</span>
             </button>
           ))}</div>
           <div className="dept-legend">{(['ok', 'watch', 'over'] as DeptStatus[]).map((st) => <span key={st}><span className={`dot ${st}`} />{STATUS_LABEL[st]}</span>)}</div>
 
           <section className="q4-card">
-            <p className="muted">Actual spend through {asOf}, shown beside the forecast for the full quarter. The forecast uses recent weeks and known commitments.</p>
+            <p className="muted">Where the quarter is heading, from recent weeks and known commitments, with actual spend through {asOf} beside it.</p>
             <div className="q4-boxes" data-tour="cfo-figures">
+              <div className="q4-box q4-lead">
+                <div className="cfo-label">Forecast for the quarter</div>
+                <div className="cfo-big">{moneyRange(dept.low, dept.high)}</div>
+                <div className="cfo-sub">Against a {money(dept.budget)} budget. Q3 actual was {money(dept.priorQuarter)}</div>
+              </div>
               <div className="q4-box">
                 <div className="cfo-label">Actual so far</div>
                 <div className="cfo-big">{money(dept.soFar)}</div>
                 <div className="cfo-sub">Day {q4.elapsed} of {q4.days}, {Math.round((q4.elapsed / q4.days) * 100)}% of the quarter</div>
-              </div>
-              <div className="q4-box">
-                <div className="cfo-label">Full-quarter forecast</div>
-                <div className="cfo-big">{moneyRange(dept.low, dept.high)}</div>
-                <div className="cfo-sub">Against a {money(dept.budget)} budget. Q3 actual was {money(dept.priorQuarter)}</div>
               </div>
               <div className="q4-box">
                 <div className="cfo-label">Forecast accuracy</div>
@@ -106,7 +101,7 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
             <div className="by-team" data-tour="cfo-teams">{dept.teams.map((t) => (
               <div key={t.team} className="team-line">
                 <b>{t.team}</b>
-                <div>{money(t.soFar)} so far<div className="cfo-sub">Forecast {moneyRange(t.low, t.high)}</div></div>
+                <div>Forecast {moneyRange(t.low, t.high)}<div className="cfo-sub">{money(t.soFar)} so far</div></div>
                 <div className="muted">{t.note}</div>
               </div>
             ))}</div>
@@ -170,48 +165,25 @@ export function CfoView({ onOpenEngineer }: { onOpenEngineer: () => void }) {
       </>
       )}
 
+      <section className="cfo-caps" data-tour="cfo-caps">
+        <h4 className="by-team-h">Cost per capability, Q3 2026</h4>
+          <table className="plain">
+            <thead><tr><th>Capability</th><th>Initiative</th><th>Status</th><th className="num">Budget</th><th className="num">Spent</th><th className="num">Over / under</th></tr></thead>
+            <tbody>{[...rows].sort((a, b) => b.over - a.over).map((r) => (
+              <tr key={r.capability}>
+                <td className={r.over > 0 ? 'accent' : ''}>{r.capability}</td><td>{r.initiative}</td><td>{r.status}</td>
+                <td className="num">{money(r.budget)}</td><td className="num">{money(r.spent)}</td>
+                <td className={`num${r.over > 0 ? ' accent' : ''}`}>{r.over > 0 ? '+' : ''}{money(r.over)}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+      </section>
+
       <div className="cfo-foot" data-tour="cfo-foot">
         <p><b>Cost per outcome, not value.</b> These figures show what work cost against what was approved. They do not measure the business value of what was built.</p>
-        <div className="cfo-links">
-          <button className="link" onClick={() => setSheet('all')}>See cost per capability</button>
-          <button className="link" onClick={() => setSheet('trace')}>Follow {hero.capability} back to the engineer’s receipt</button>
-        </div>
         <p className="muted">Synthetic data, modeled on a ~{ORG_ENGINEERS.toLocaleString('en-US')}-engineer org.</p>
       </div>
 
-      {sheet && (
-        <div className="sheet-backdrop" onClick={() => setSheet(null)}>
-          <div className="sheet" onClick={(e) => e.stopPropagation()}>
-            <button className="link sheet-close" onClick={() => setSheet(null)}>Close</button>
-            {sheet === 'trace' ? (
-              <>
-                <h3>{hero.capability}</h3>
-                <p>Your run was one of {heroRow.runs.toLocaleString('en-US')} runs, {money(heroRow.spent)} total, against a budget of {money(heroRow.budget)}.</p>
-                {state.pausedDecision ? (
-                  <p>The engineer’s receipt: {money(hero.actualCost)} against a ceiling of {money(hero.quote.high)}, after “{state.pausedDecision.label}” ({state.decidedBy === 'engineer' ? `decided by ${hero.developer}` : 'decided by the VP of Engineering'}), simulated PR #{hero.prNumber}. That {money(hero.actualCost)} is inside the {money(heroRow.spent)} above.</p>
-                ) : hero.status === 'paused' ? (
-                  <p>The run is paused at {money(hero.actualCost)} waiting for a decision, so it has no receipt yet.</p>
-                ) : <p>The engineer’s run has not been played yet, so its cost is not in this total.</p>}
-                <button className="link" onClick={() => { setSheet(null); onOpenEngineer(); }}>Open the engineer view</button>
-              </>
-            ) : (
-              <>
-                <h3>Cost per capability, Q3 2026</h3>
-                <table className="plain">
-                  <thead><tr><th>Capability</th><th>Initiative</th><th>Status</th><th className="num">Budget</th><th className="num">Spent</th><th className="num">Over / under</th></tr></thead>
-                  <tbody>{[...rows].sort((a, b) => b.over - a.over).map((r) => (
-                    <tr key={r.capability}>
-                      <td className={r.over > 0 ? 'accent' : ''}>{r.capability}</td><td>{r.initiative}</td><td>{r.status}</td>
-                      <td className="num">{money(r.budget)}</td><td className="num">{money(r.spent)}</td>
-                      <td className={`num${r.over > 0 ? ' accent' : ''}`}>{r.over > 0 ? '+' : ''}{money(r.over)}</td>
-                    </tr>
-                  ))}</tbody>
-                </table>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

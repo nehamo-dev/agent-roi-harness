@@ -39,7 +39,7 @@ export function byTeam(s: DemoState) {
 export interface OffPlanRun {
   task: Task;
   overBy: number;
-  state: 'needs decision' | 'needs review' | 'resolved';
+  state: 'with engineer' | 'needs review' | 'resolved';
   note: string;
 }
 
@@ -48,7 +48,9 @@ export function offPlanRuns(s: DemoState): OffPlanRun[] {
   for (const t of s.tasks) {
     const overBy = t.actualCost - t.quote.high;
     if (t.status === 'paused') {
-      out.push({ task: t, overBy, state: 'needs decision', note: s.heroEscalated ? 'Paused at its ceiling; the engineer escalated it. Decision below.' : 'Paused at its ceiling; the engineer is deciding.' });
+      out.push({ task: t, overBy, state: 'with engineer', note: `Paused at its ceiling; ${t.developer} is deciding.` });
+    } else if (t.role === 'hero' && s.pausedDecision) {
+      out.push({ task: t, overBy, state: 'resolved', note: `${t.developer} chose “${s.pausedDecision.label}”.` });
     } else if (t.status === 'completed' && (overBy > OFF_PLAN_MIN_OVER || t.delivered === false)) {
       const ratio = t.actualCost / t.quote.high;
       const note = t.delivered === false ? 'Stopped and reverted; capability not delivered.'
