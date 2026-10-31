@@ -1,6 +1,6 @@
 # agent-roi-harness
 
-An economic harness for coding agents. It quotes cost from similar past work before a task starts, keeps spend in range while the agent runs by catching waste and asking a human only at real trade-offs, then reports cost per delivered capability. Demo with synthetic data: engineer, engineering leader, and CFO views. The demo follows one capability ("Saved cards at checkout") through all three.
+An economic harness for Claude Code, shown as a demo on synthetic data. It quotes a task before work starts, keeps spend in range during the run by fixing waste and asking a person only at real trade-offs, and reports what the work cost. Three views show this at three levels: an Engineer session with an Economics panel, a VP Engineering budget view, and a CFO spend page. All three read the same store, so a decision in the Engineer view changes the other two.
 
 **All data is synthetic.** Tasks, costs, teams, developers, PRs and tickets are seeded and simulated. The evals below show the mechanism works on that data. They do not show real-world accuracy.
 
@@ -35,7 +35,7 @@ Press **▶ Play demo** in the header for a guided tour: it resets the demo, dri
 2. **VP Engineering** (about 1 min): the quarter's forecast against plan leads, then control and quote accuracy; budget vs actual by team, and only the runs that went off plan, including T-149 with Max's choice.
 3. **CFO** (about 1 min): the quarter's forecast leads, across departments and for Engineering by team, with cost per capability open on the page. Labeled "cost per outcome, not value".
 
-The story strip under the banner has a Next button for each step. "Reset demo" returns everything to the start.
+The strip under the banner has a Next button for each view. "Reset demo" returns everything to the start.
 
 ## What is real vs simulated
 
@@ -43,19 +43,19 @@ The story strip under the banner has a Next button for each step. "Reset demo" r
 |---|---|---|
 | Org-scale spend (17 capabilities, ~$2.3M a quarter, ~3,000 engineers at ~$250/month) | Simulated | `src/data/enterprise.ts`. Each capability's total is built from runs drawn from the same per-run distribution as the task history; the 150 sampled tasks, including the hero run, are added on top |
 | Q4 2026 so far, all departments (Engineering, Customer Support, Marketing, Sales) | Simulated | `src/data/q4.ts`. Engineering teams continue from the Q3 model (one-offs removed, Growth ramping, the paused capability's open scope added by decision); other departments are seeded weekly series. Forecast and accuracy computed in `src/core/q4.ts` |
-| Owner's notes on over-budget capabilities | Simulated | `src/data/ownerNotes.ts`; the paused capability's note comes from the leader's decision |
+| Owner's notes on over-budget capabilities | Simulated | `src/data/ownerNotes.ts`; the paused capability's note comes from the engineer's decision |
 | Task history (150 tasks, 4 teams, Jul–Sep 2026) | Simulated | Seeded generator (`src/data/generate.ts`), heavy-tailed costs; averages $14 per developer per active day with 94% of developer-days under $30 (Claude Code docs: ~$13 average, 90% under $30), 4 runaway runs at $100–$300 |
 | Cost estimator and quotes | **Real logic** on simulated data | `src/core/estimator.ts`. Sees task features and past tasks only, never generator parameters |
 | Estimator backtest (E1) | **Real** on simulated data | Time split; three naive baselines and a width-matched naive range |
 | Waste detector | **Real logic** | `src/core/detector.ts`. Rule-based: retry loops and repeated reads |
 | Sample event logs and waste labels | Simulated, hand-authored | `src/data/logs.ts`, `src/data/labels.ts` |
-| Engineer session (T-149) | Simulated (scripted replay) | Spend at each step, the two corrections and their savings (from the detector), the quote band, and the option costs (from the run's own rate per service) are computed from the scripted event log. Scope discovery (6 planned, 14 found) is scripted |
+| Engineer session (T-149) | Simulated (scripted replay) | Spend at each step, the four self-corrections and their savings (from the detector), the quote band, and the option costs (from the run's own rate per service) are computed from the scripted event log. Scope discovery (6 planned, 14 found) is scripted |
 | Task card text, scope story, simulated Jira ticket PLAT-2417 | Simulated | `src/data/heroScenario.ts`, `src/data/pausedScenario.ts` |
 | Budgets per initiative | Simulated | Derived from synthetic spend |
-| Leader scorecard, off-plan runs, guardrails, decision costs | **Real logic** on simulated data | `src/core/selectors.ts`, `src/core/decision.ts` |
+| VP Engineering scorecard, off-plan runs, guardrails, decision costs | **Real logic** on simulated data | `src/core/selectors.ts`, `src/core/decision.ts` |
 | CFO forecast range and reliability | **Real logic** on simulated data | `src/core/forecast.ts`: bootstrap of recent weekly spend |
-| AI tokens beside actual costs (Engineer and Leader views) | Simulated conversion | One blended rate, $6 per million tokens (`src/core/tokens.ts`). The CFO view stays in dollars |
-| Q4-to-date spend ($1.1M of $2.9M), quote accuracy (89%) and control by dollars (60%) on the leader scorecard; Engineering's Q4 $1.1M of $2.9M and green status on the CFO page; and Engineering forecast accuracy on the CFO page (8 of 9 weeks) | **Illustrative, set for the demo** | `src/data/illustrative.ts`. The computed values on this data are lower and are reported unchanged (E1 coverage 67.4%, control by dollars about 36%, E5 67%) |
+| AI tokens beside actual costs (Engineer and VP Engineering views) | Simulated conversion | One blended rate, $6 per million tokens (`src/core/tokens.ts`). The CFO view stays in dollars |
+| Q4-to-date spend ($1.1M of $2.9M), quote accuracy (89%) and control by dollars (60%) on the VP Engineering scorecard; Engineering's Q4 $1.1M of $2.9M and green status on the CFO page; and Engineering forecast accuracy on the CFO page (8 of 9 weeks) | **Illustrative, set for the demo** | `src/data/illustrative.ts`. The computed values on this data are lower and are reported unchanged (E1 coverage 67.4%, control by dollars about 36%, E5 67%) |
 | PRs, merges, ticket links | Simulated | PR numbers are synthetic; nothing is merged |
 | Persistence | None | In-memory only; reload resets the demo |
 
@@ -78,4 +78,4 @@ Full tables are in `eval-results/`, and the summary is in `EVAL.md`.
 2. **A first-class budget checkpoint.** Pause-and-approve when a run crosses its envelope, instead of simulating it in the UI.
 3. **Better calibration of the tail.** Widening is already calibrated on a training-only split (`npm run calibrate`), but E1 coverage still misses and the costliest 5% are never covered. Next: a separate tail allowance in the quote, and more history per task type and size.
 4. **Attribution.** Session → PR → ticket links, so "capability delivered" comes from merged work rather than seeded labels.
-5. **Design-partner validation.** Put the leader scorecard in front of 3–5 VPs of Engineering and test whether they would take it to finance.
+5. **Design-partner validation.** Put the VP Engineering view in front of 3–5 VPs of Engineering and test whether they would take it to finance.

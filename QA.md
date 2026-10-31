@@ -50,8 +50,8 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 | E4 | Choosing an option resolves the run and updates the other views | PASS | Now chosen in the engineer view. Finish-6, stop and do-all-14 each resolve the run; totals, the off-plan row, the Q3 note and Q4 Platform update (E3). |
 | E5 | Guardrail recommendations are computed from the data and cite real numbers | PASS | Computed in `guardrails()`: After recalibration: "65% of 34 web-frontend runs landed inside their quote, vs 73% across all areas"; "5 completed runs went past 3x their ceiling, spending $713 beyond that point". |
 | E6 | Tagging queue: yes and no buttons work, and the scorecard updates live | N/A | Tagging queue removed from the leader view by request. The tag action and scorecard update remain in the store and are still checked by E3. |
-| E7 | Scorecard shows control by task, control by dollars, justified rate with tag coverage, and quote accuracy | PASS | Tiles after recalibration (hero completed): control by task 86.7%, control by dollars 36.4%, justified 87.0% with tag coverage 72.5%, quote accuracy 66.7%. |
-| E8 | The hero task from the engineer view appears here | N/A | "Latest run from the engineer view" card removed from the leader view by request. The hero task still flows into the CFO view (trace link) and E3 checks its cost. |
+| E7 | Scorecard shows control by task, control by dollars, justified rate with tag coverage, and quote accuracy | PASS (changed) | The page now shows the Q4 forecast, control by task, control by dollars (60%, illustrative) and quote accuracy (89%, illustrative). The justified tile was replaced by request; `scorecard()` still computes it. Computed values: control by dollars about 36%, quote accuracy 67.4%. |
+| E8 | The hero task from the engineer view appears here | PASS (changed) | The "Latest run" card was removed by request. T-149 appears as a row in the off-plan table with the engineer's choice, and E3 checks its cost. The CFO page has no link back to it. |
 
 ## F. CFO view
 | # | Check | Result | Evidence |
@@ -75,7 +75,7 @@ Claude Code: run every automated check yourself and fill in the Result column wi
 ## H. Demo flow
 | # | Check | Result | Evidence |
 |---|---|---|---|
-| H1 | The Engineer, then Leader, then CFO story runs in about three minutes with no dead ends | NEEDS HUMAN EYES | Story strip with Step 1/2/3 text and Next buttons added; I clicked through all three views with no dead ends, but did not time a narrated 3-minute run. |
+| H1 | The Engineer, then VP Engineering, then CFO story runs in about three minutes with no dead ends | NEEDS HUMAN EYES | Story strip with Step 1/2/3 text and Next buttons added; I clicked through all three views with no dead ends, but did not time a narrated 3-minute run. |
 | H2 | Reset returns the whole demo to the start for a second run | PASS | "Reset demo" clicked after a full run: terminal, paused run options (3 again) and hero task restored. |
 | H3 | Layout works at about 1280px wide and on a laptop screen | NEEDS HUMAN EYES | Not checked at specific widths. CSS has breakpoints at 900px and 720px. |
 | H4 | Reloading the page leaves the app in a sensible state | PASS | Reload returns to Engineer step 1 with seeded data (in-memory state by design). |

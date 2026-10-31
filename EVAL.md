@@ -45,7 +45,7 @@ Automated checks that the three views agree:
 - Total spend is identical in the leader and CFO views for the same period.
 - The hero task's cost matches across the engineer receipt, the leader row, and the CFO cost-per-capability entry.
 - Choosing an option on the paused run updates the leader view and the CFO totals.
-- Tagging a task in the leader queue updates the scorecard.
+- Tagging a task updates the scorecard (checked through the store; the queue is no longer in the UI).
 - Choosing a different trade-off in the terminal changes the receipt and the downstream numbers.
 - No NaN, negative, or empty values anywhere.
 
