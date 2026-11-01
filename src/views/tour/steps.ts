@@ -51,7 +51,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     persona: 'CFO', targets: ['cfo-top', 'cfo-depts'], title: 'This quarter’s forecast, company-wide',
     body: 'The forecast for the quarter leads, across every department, with spend to date beside it. Each department’s dot shows its status against budget.',
-    before: async (c) => { c.click('cfo-q4'); await c.sleep(100); c.click('cfo-dept-Engineering'); await c.waitFor('cfo-figures'); },
+    before: async (c) => { c.click('cfo-dept-Engineering'); await c.waitFor('cfo-figures'); },
   },
   {
     persona: 'CFO', targets: ['cfo-figures'], title: 'Will Engineering land on budget?',

@@ -33,7 +33,7 @@ Press **▶ Play demo** in the header for a guided tour: it resets the demo, dri
 
 1. **Engineer** (about 1 min), shown as a desktop coding-agent app with an Economics panel on the right: task T-149, "Require mTLS between internal services" (Max W., Platform). Approve the 9.82M-token ceiling and start. The harness self-corrects four times (two repeated reads, two retry loops), each shown with its savings, then stops the run when it finds 14 services instead of the 6 planned. Choose: do all 14, finish the 6 and re-quote the rest, or stop and revert. Each choice ends in a receipt. Amounts in this view are in tokens.
 2. **VP Engineering** (about 1 min): the quarter's forecast against plan leads, then control and quote accuracy; budget vs actual by team, and only the runs that went off plan, including T-149 with Max's choice.
-3. **CFO** (about 1 min): the quarter's forecast leads, across departments and for Engineering by team, with cost per capability open on the page. Labeled "cost per outcome, not value".
+3. **CFO** (about 1 min): the quarter's forecast leads, across departments and for Engineering by team, with cost per capability on the page. The Q3 button is disabled. Labeled "cost per outcome, not value".
 
 The strip under the banner has a Next button for each view. "Reset demo" returns everything to the start.
 
@@ -43,7 +43,7 @@ The strip under the banner has a Next button for each view. "Reset demo" returns
 |---|---|---|
 | Org-scale spend (17 capabilities, ~$2.3M a quarter, ~3,000 engineers at ~$250/month) | Simulated | `src/data/enterprise.ts`. Each capability's total is built from runs drawn from the same per-run distribution as the task history; the 150 sampled tasks, including the hero run, are added on top |
 | Q4 2026 so far, all departments (Engineering, Customer Support, Marketing, Sales) | Simulated | `src/data/q4.ts`. Engineering teams continue from the Q3 model (one-offs removed, Growth ramping, the paused capability's open scope added by decision); other departments are seeded weekly series. Forecast and accuracy computed in `src/core/q4.ts` |
-| Owner's notes on over-budget capabilities | Simulated | `src/data/ownerNotes.ts`; the paused capability's note comes from the engineer's decision |
+| Owner's notes on over-budget capabilities | Simulated | `src/data/ownerNotes.ts`. No longer shown on the CFO page; still computed and checked by E3 |
 | Task history (150 tasks, 4 teams, Jul–Sep 2026) | Simulated | Seeded generator (`src/data/generate.ts`), heavy-tailed costs; averages $14 per developer per active day with 94% of developer-days under $30 (Claude Code docs: ~$13 average, 90% under $30), 4 runaway runs at $100–$300 |
 | Cost estimator and quotes | **Real logic** on simulated data | `src/core/estimator.ts`. Sees task features and past tasks only, never generator parameters |
 | Estimator backtest (E1) | **Real** on simulated data | Time split; three naive baselines and a width-matched naive range |
@@ -53,7 +53,7 @@ The strip under the banner has a Next button for each view. "Reset demo" returns
 | Task card text, scope story, simulated Jira ticket PLAT-2417 | Simulated | `src/data/heroScenario.ts`, `src/data/pausedScenario.ts` |
 | Budgets per initiative | Simulated | Derived from synthetic spend |
 | VP Engineering scorecard, off-plan runs, guardrails, decision costs | **Real logic** on simulated data | `src/core/selectors.ts`, `src/core/decision.ts` |
-| CFO forecast range and reliability | **Real logic** on simulated data | `src/core/forecast.ts`: bootstrap of recent weekly spend |
+| CFO forecast range and reliability | **Real logic** on simulated data | `src/core/forecast.ts` and `src/core/q4.ts`: bootstrap of recent weekly spend. Engineering's accuracy on the page is illustrative |
 | AI tokens beside actual costs (Engineer and VP Engineering views) | Simulated conversion | One blended rate, $6 per million tokens (`src/core/tokens.ts`). The CFO view stays in dollars |
 | Q4-to-date spend ($1.1M of $2.9M), quote accuracy (89%) and control by dollars (60%) on the VP Engineering scorecard; Engineering's Q4 $1.1M of $2.9M and green status on the CFO page; and Engineering forecast accuracy on the CFO page (8 of 9 weeks) | **Illustrative, set for the demo** | `src/data/illustrative.ts`. The computed values on this data are lower and are reported unchanged (E1 coverage 67.4%, control by dollars about 36%, E5 67%) |
 | PRs, merges, ticket links | Simulated | PR numbers are synthetic; nothing is merged |

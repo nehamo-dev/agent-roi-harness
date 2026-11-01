@@ -29,7 +29,7 @@ export function App() {
       <header>
         <div className="title">Economic harness <span className="muted">· demo</span></div>
         <nav>{TABS.map((t, i) => <button key={t} className={t === tab ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{i + 1}. {t}</button>)}</nav>
-        <button className="btn-primary" onClick={playDemo}>▶ Play demo</button>
+        <button className="btn-primary btn-play" onClick={playDemo}>▶ Play demo</button>
         <button className="reset" onClick={restart}>Reset demo</button>
       </header>
       <div className="banner">{tab === 'CFO' ? 'Synthetic data: all spend, budgets, teams and forecasts are seeded and illustrative. Not real usage.' : 'Synthetic data: all tasks, costs, teams and PRs are seeded and simulated. Not real usage.'}</div>

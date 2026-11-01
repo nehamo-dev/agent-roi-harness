@@ -69,25 +69,11 @@ tr.hero-row .pill { margin-left: 6px; }
 .story button { white-space: nowrap; background: var(--accent); color: #fff; border-color: var(--accent); }
 /* CFO briefing: one screen, no boxes, one accent for over-budget items. */
 .cfo { --accent-over: #c2410c; padding: 4px 4px 0; }
-.cfo-headline { font-size: 18px; line-height: 1.4; margin: 0 0 12px; max-width: 1000px; }
-.cfo-numbers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 12px; }
 .cfo-label { font-size: 13px; color: var(--muted); }
 .cfo-big { font-size: 32px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; }
 .cfo-sub { font-size: 13px; color: var(--muted); }
-.cfo-chart { height: 124px; margin-bottom: 26px; }
-.cfo-legend { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
-.sw-bar, .sw-band { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-left: 10px; }
-.sw-bar { background: #4b5563; margin-left: 0; } .sw-band { background: #d1d5db; }
 .cfo-h { margin: 0 0 10px; }
-.cfo-over { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 24px; }
-.cfo-item-name { font-weight: 650; color: var(--accent-over); }
-.cfo-item-figs { font-size: 12.5px; margin: 1px 0 4px; }
 .cfo .accent { color: var(--accent-over); font-weight: 600; }
-.cfo-note { font-size: 12.5px; margin: 0 0 4px; line-height: 1.4; }
-.cfo-note.missing { color: var(--muted); font-style: italic; }
-.cfo-effect { font-size: 12.5px; color: var(--muted); margin: 0; line-height: 1.4; }
-.cfo-effect span { color: var(--ink); }
-.cfo-rest { margin: 14px 0 10px; font-size: 14px; }
 .cfo-footer { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 13px; color: var(--muted); }
 button.link { background: none; border: none; padding: 0; color: var(--ink); text-decoration: underline; cursor: pointer; font: inherit; }
 .sheet-backdrop { position: fixed; inset: 0; background: rgba(20, 24, 30, .35); display: flex; align-items: flex-start; justify-content: center; padding-top: 8vh; z-index: 10; }
@@ -291,3 +277,5 @@ hr.sep { border: none; border-top: 1px solid var(--line); margin: 18px 0 20px; }
 .cfo-caps { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 18px 24px; margin-top: 14px; }
 .cfo-caps .num.accent, .cfo-caps .accent { color: var(--bad); font-weight: 600; }
 .dept.active .dot { box-shadow: 0 0 0 2px #fff; }
+.btn-primary.btn-play { background: #c2410c; border-color: #c2410c; color: #fff; }
+.btn-primary.btn-play:hover { background: #9a3412; border-color: #9a3412; }
