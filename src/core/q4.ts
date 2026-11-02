@@ -34,13 +34,10 @@ export function q4Summary(s: DemoState, money: (n: number) => string) {
   const p = pausedScopeCost(s);
 
   const depts = s.q4.departments.map((d: Department) => {
-    // Engineering's to-date spend and plan are set for the demo (same as the leader tile); teams scale to match.
-    const raw = sum(d.teams.map((t) => sum(t.q4Weekly)));
-    const target = d.engineering ? ILLUSTRATIVE.spendToDate : null;
-    const spendScale = target ? target.spent / raw : 1;
-    const budgetScale = target ? target.planned / d.budget : 1;
+    // Engineering's plan is set for the demo (same as the leader tile); team budgets scale to match.
+    const budgetScale = d.engineering ? ILLUSTRATIVE.engineeringPlan / d.budget : 1;
     const teams = d.teams.map((t) => {
-      const soFar = sum(t.q4Weekly) * spendScale;
+      const soFar = sum(t.q4Weekly);
       const f = forecast(asWeeks([...t.priorWeekly, ...fullWeeks(t, elapsed)]), horizon);
       const open = t.note.kind === 'open-decision';
       const extraLow = open ? p.low : 0;

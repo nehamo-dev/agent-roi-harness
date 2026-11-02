@@ -55,7 +55,7 @@ The strip under the banner has a Next button for each view. "Reset demo" returns
 | VP Engineering scorecard, off-plan runs, guardrails, decision costs | **Real logic** on simulated data | `src/core/selectors.ts`, `src/core/decision.ts` |
 | CFO forecast range and reliability | **Real logic** on simulated data | `src/core/forecast.ts` and `src/core/q4.ts`: bootstrap of recent weekly spend. Engineering's accuracy on the page is illustrative |
 | AI tokens beside actual costs (Engineer and VP Engineering views) | Simulated conversion | One blended rate, $6 per million tokens (`src/core/tokens.ts`). The CFO view stays in dollars |
-| Q4-to-date spend ($1.1M of $2.9M), quote accuracy (89%) and control by dollars (60%) on the VP Engineering scorecard; Engineering's Q4 $1.1M of $2.9M and green status on the CFO page; and Engineering forecast accuracy on the CFO page (8 of 9 weeks) | **Illustrative, set for the demo** | `src/data/illustrative.ts`. The computed values on this data are lower and are reported unchanged (E1 coverage 67.4%, control by dollars about 36%, E5 67%) |
+| Engineering's Q4 plan ($2.9M), quote accuracy (89%) and control by dollars (60%) on the VP Engineering scorecard; Engineering's green status and forecast accuracy (8 of 9 weeks) on the CFO page | **Illustrative, set for the demo** | `src/data/illustrative.ts`. The computed values on this data are lower and are reported unchanged (E1 coverage 67.4%, control by dollars about 36%, E5 67%) |
 | PRs, merges, ticket links | Simulated | PR numbers are synthetic; nothing is merged |
 | Persistence | None | In-memory only; reload resets the demo |
 
